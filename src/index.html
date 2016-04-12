@@ -1,0 +1,60 @@
+<!doctype html>
+<html class="no-js" ng-app="excel-table">
+  <head>
+    <meta charset="utf-8">
+    <title>Excel Table</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+    <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css">
+    <!-- bower:css -->
+    <!-- run `gulp wiredep` to automaticaly populate bower styles dependencies -->
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <!-- build:css({.tmp/serve,src}) styles/app.css -->
+    <!-- inject:css -->
+    <!-- css files will be automaticaly insert here -->
+    <!-- endinject -->
+    <!-- endbuild -->
+  </head>
+  <body ng-controller="ExcelTableController">
+  		<excel-table model="tblModel" data="tblData"></excel-table>
+  		
+    	<!-- <div class="excel-table">
+    		<div class="tb-col first">
+    			<div tb-cell class="tb-cell header">ID</div>
+    			<div tb-cell class="tb-cell">1</div>
+    			<div tb-cell class="tb-cell">2</div>
+    		</div>
+    		<div class="tb-col">
+    			<div tb-cell class="tb-cell header">Name</div>
+    			<div tb-cell class="tb-cell">Anh</div>
+    			<div tb-cell class="tb-cell">Hai</div>
+    		</div>
+    		<div class="tb-col last">
+    			<div tb-cell class="tb-cell header">Email</div>
+    			<div tb-cell class="tb-cell">test@mail.com</div>
+    			<div tb-cell class="tb-cell">test2@mail.com</div>
+    		</div>
+    	</div> -->
+   
+    <!-- build:js(src) scripts/vendor.js -->
+    <!-- bower:js -->
+    <!-- run `gulp wiredep` to automaticaly populate bower script dependencies -->
+    <!-- endbower -->
+    <!-- endbuild -->
+
+    <!-- build:js({.tmp/serve,.tmp/partials,src}) scripts/app.js -->
+    <!-- inject:js -->
+    <!-- js files will be automaticaly insert here -->
+    <!-- endinject -->
+
+    <!-- inject:partials -->
+    <!-- angular templates will be automatically converted in js and inserted here -->
+    <!-- endinject -->
+    <!-- endbuild -->
+
+  </body>
+</html>
