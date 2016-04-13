@@ -1,3 +1,7 @@
+excel-table {
+	position: relative;
+    display: block;
+}
 .excel-table {
 	border: 1px solid #e7eaec;
 	-webkit-user-select: none;  
@@ -29,8 +33,8 @@
 	font-weight: 700;
 	background-color: white;
 }
-.excel-table .tb-col.first,
-.excel-table .tb-col.last {
+.excel-table .tb-col:first-child,
+.excel-table .tb-col:last-child {
 	border: 0px;
 }
 .excel-table .tb-col {
@@ -62,3 +66,5 @@
     -moz-osx-font-smoothing: grayscale;
     transform: translate(0,0);
 }
+// injector
+// endinjector

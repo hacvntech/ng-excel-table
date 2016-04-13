@@ -1,33 +1,13 @@
-<!--
-* @Author: Duc Anh Nguyen
-* @Email: anhnd@hacvntech.com
-* @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
-* @Date:   2016-04-11 15:20:13
-* @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-11 15:26:36
--->
-<!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="utf-8">
-    </head>
-    <body ng-controller="ExcelTableController">
-    	<div class="table">
-    		<div class="tb-row first">
-    			<div class="tb-col first">ID</div>
-    			<div class="tb-col">Name</div>
-    			<div class="tb-col last">Email</div>
-    		</div>
-    		<div class="tb-row">
-    			<div class="tb-col first">1</div>
-    			<div class="tb-col">Anh</div>
-    		</div>
-    			<div class="tb-col last">test@mail.com</div>
-    		<div class="tb-row last">
-    			<div class="tb-col first">2</div>
-    			<div class="tb-col">Hai</div>
-    			<div class="tb-col last">test2@mail.com</div>
-    		</div>
-    	</div>
-    </body>
-</html>
+<div class="excel-table">
+	<div class="tb-col" ng-repeat="col in model">
+		<div tb-cell class="tb-cell header col-{{col.dataIndex}} ng-class:(col.sortable ? 'sortable' : '');">
+			{{col.title}}
+			<span class="pull-right" ng-if="col.sortable">
+				<i class="fa fa-sort-amount-asc"></i>
+			</span>
+		</div>
+		<div tb-cell data-index="{{$index}}" class="tb-cell row-{{$index+1}}" ng-repeat="cell in data track by $index">
+			{{cell[col.dataIndex]}}
+		</div>
+	</div>
+</div>

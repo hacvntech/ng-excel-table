@@ -1,0 +1,18 @@
+<div class="excel-table row-edit-form">
+	<div class="tb-col" ng-repeat="col in model">
+		<div ng-if="col.editable == true || col.editable == undefined" class="tb-cell" data-field="{{col.dataIndex}}" data-type="{{col.type}}">
+			<input class="cell-edit" type="number" ng-if="col.type == 'number'">
+			<input class="cell-edit" type="text" ng-if="col.type == 'string'">
+			<select class="cell-edit" ng-if="col.type == 'list'"></select>
+		</div>
+		<div ng-if="col.editable == false" class="tb-cell" data-field="{{col.dataIndex}}" data-type="{{col.type}}">
+			<input class="cell-edit" type="text" disabled>
+		</div>
+	</div>
+	<div class="ctrl-panel-container">
+		<div class="ctrl-panel-wrapper">
+			<span class="save" ng-click="save()">Save</span>
+			<span class="cancel" ng-click="cancel()">Cancel</span>
+		</div>
+	</div>
+</div>

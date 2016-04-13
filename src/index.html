@@ -1,5 +1,5 @@
 <!doctype html>
-<html class="no-js" ng-app="excel-table">
+<html class="no-js" ng-app="excelTable">
   <head>
     <meta charset="utf-8">
     <title>Excel Table</title>
@@ -19,8 +19,8 @@
     <!-- endinject -->
     <!-- endbuild -->
   </head>
-  <body ng-controller="ExcelTableController">
-  		<excel-table model="tblModel" data="tblData"></excel-table>
+  <body ng-controller="AppController">
+  		<excel-table model="tblModel" data="tblData" row-editing></excel-table>
   		
     	<!-- <div class="excel-table">
     		<div class="tb-col first">

@@ -1,0 +1,54 @@
+.excel-table.row-edit-form {
+	position: absolute;
+	display: none;
+	width: 100%;
+	transition:top .1s linear;
+}
+.excel-table.row-edit-form .tb-col {
+	margin: 0;
+	border: 0;
+	display: block;
+	height: 100%;
+}
+.excel-table.row-edit-form .tb-cell {
+	padding: 0;
+	height: 100%;
+}
+.excel-table.row-edit-form input,
+.excel-table.row-edit-form select {
+	clear: both;
+	height: 100%;
+	padding: 1px 1px 1px 10px;
+	font-size: 14px;
+}
+.excel-table.row-edit-form .ctrl-panel-container{
+	float: left;
+	width: 100%;
+	margin-top: 5px;
+	position: relative;
+}
+.ctrl-panel-container .ctrl-panel-wrapper {
+	display: block;
+	position: fixed;
+	left: 45%;
+	width: 132px;
+}
+.ctrl-panel-wrapper span {
+	padding: 3px 0px;
+    margin: 0 2px;
+	width: 60px;
+	display: block;
+	float: left;
+	text-align: center;
+}
+.ctrl-panel-wrapper .save,
+.ctrl-panel-wrapper .cancel
+{
+	cursor: pointer;
+	background: white;
+	color: black;
+	border-radius: 0px 0px 4px 4px;
+	border: 1px solid #949CA1;
+	border-top: 0px;
+	text-align: center;
+}

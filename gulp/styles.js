@@ -17,7 +17,7 @@ gulp.task('styles', function () {
 
   var injectFiles = gulp.src([
     paths.src + '/**/*.less'
-  ], { read: false });
+  ], { read: true });
 
   var injectOptions = {
     transform: function(filePath) {
