@@ -7,7 +7,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <link rel="shortcut icon" href="favicon.ico" type="image/x-icon" />
-    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.6.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../bower_components/isteven-angular-multiselect/isteven-multi-select.css">
+    <link rel="stylesheet" href="../bower_components/font-awesome/css/font-awesome.min.css">
+    
     <!-- bower:css -->
     <!-- run `gulp wiredep` to automaticaly populate bower styles dependencies -->
     <!-- endbower -->
@@ -20,7 +22,8 @@
     <!-- endbuild -->
   </head>
   <body ng-controller="AppController">
-  		<excel-table model="tblModel" data="tblData" row-editing></excel-table>
+        <excel-table tbl-option="tblOption" model="tblModel" data="tblData" data-primary="id" row-editing></excel-table>
+  		<!-- <excel-table tbl-option="tblOption" model="tblModel" data="tblData1" row-editing></excel-table> -->
   		
     	<!-- <div class="excel-table">
     		<div class="tb-col first">
@@ -55,6 +58,6 @@
     <!-- angular templates will be automatically converted in js and inserted here -->
     <!-- endinject -->
     <!-- endbuild -->
-
+  <script src="../bower_components/isteven-angular-multiselect/isteven-multi-select.js"></script>
   </body>
 </html>

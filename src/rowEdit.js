@@ -4,20 +4,108 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-12 17:58:51
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-14 01:09:19
+* @Last Modified time: 2016-04-18 10:13:22
 */
 
 'use strict';
 
-angular.module('xtable.rowEdit', [])
+angular.module('xtable.rowEdit', ['isteven-multi-select'])
 	.value('defaults', {
 		editable: true
 	})
-    .directive('rowEditing', function ($window, excelTableModel, $templateRequest, $compile, defaults) {
+    .filter('getCurrentEditRecord', function () {
+        return function(obj, model, val) {
+            var primaryKey = null;
+            for (var k in model){
+                if(model[k].primary){
+                    primaryKey = model[k].dataIndex;
+                    break;
+                }
+            }
+            for (var index in obj){
+                if(obj[index][primaryKey] == val)
+                    return obj[index];
+            }
+        }
+    })
+    .filter('findType', function () {
+        return function(val, type) {
+            var objarr = [];  
+            for (var index in val){
+                if(val[index].type === type)
+                    objarr.push(val[index]);
+            }
+            return objarr;
+        }
+    })
+    .filter('mappingDataToList', function () {
+        return function(list, mapping, keyMap) {
+            for (var i in list){
+                delete list[i]["ticked"];
+            }
+            if(mapping instanceof String){
+                var valueArr = mapping.split(",");
+                for(var k in valueArr){
+                    for (var i in list){
+                        if(list[i][keyMap] === valueArr[k])
+                            list[i]["ticked"] = true;
+                    }
+                }
+            }
+            else{
+                return "Invalid Format of List"
+            }
+            return list;
+        }
+    })
+    .directive('rowEditing', function ($window, excelTableModel, $templateRequest, $compile, defaults, $filter) {
         return {
             restrict: 'A',
             link: function (scope, element, attrs) {
             	scope.editable = defaults.editable;
+                /* scope variables for datepicker */
+                scope.picker = {};
+                scope.datefield = {};
+                /* scope variables for select box */
+                scope.listIn = {};
+                scope.listOut = {};
+                scope.listCfg = {};
+
+                /* filter model to get all model has type list */
+                var allSelectBoxField = $filter('findType')(scope[attrs.model], "list");
+                for(var k in allSelectBoxField){
+                    scope.listCfg[allSelectBoxField[k].dataIndex] = {
+                        btnDisplay: allSelectBoxField[k].btnDisplay,
+                        itemDisplay: allSelectBoxField[k].itemDisplay,
+                        valueDisplay: allSelectBoxField[k].valueDisplay,
+                        multiSelect: allSelectBoxField[k].multiSelect ? "multiple" : "single"
+                    }
+                    scope.listIn[allSelectBoxField[k].dataIndex] = allSelectBoxField[k].store;
+                    scope.listOut[allSelectBoxField[k].dataIndex] = {}
+                }
+                /* filter model to get all model has type date */
+                var allDateField = $filter('findType')(scope[attrs.model], "date");
+                for(var k in allDateField){
+                    scope.picker[allDateField[k].dataIndex] = {
+                        dateOptions: {
+                            dateDisabled: function(data) {
+                                if(allDateField[k].disableWeekend){
+                                    var date = data.date,
+                                        mode = data.mode;
+                                    return mode === 'day' && (date.getDay() === 0 || date.getDay() === 6);
+                                }
+                                else{
+                                    return true;
+                                }
+                            },
+                            maxDate: allDateField[k].maxDate == undefined ? "" : allDateField[k].maxDate,
+                            minDate: allDateField[k].minDate == undefined ? "" : allDateField[k].minDate,
+                            startingDay: allDateField[k].startingDay == undefined ? 0 : allDateField[k].startingDay
+                        },
+                        opened: false
+                    }
+                }
+
             	$templateRequest("template/rowediting.html").then(function(html){
 	            	scope.data = scope[attrs.data];
 	            	scope.model = scope[attrs.model];
@@ -26,38 +114,56 @@ angular.module('xtable.rowEdit', [])
 					element.append(tpl);
 				});
 				element.on('dblclick', function(e){
-                	if(e.target && e.target.matches('.row-'+(parseInt(e.target.dataset.index)+1)) ){
+                    if(e.target && (e.target.matches('.row-'+(parseInt(e.target.dataset.index)+1)) || e.target.matches('.ng-binding') )){
+                        if(e.target.matches('.ng-binding')){
+                            e.target = e.target.parentNode;
+                        }
                 		scope.data = scope[attrs.data];
 	            		scope.model = scope[attrs.model];
-                		/* get position of clicked row */
-                		var parent = e.target;
-						while (parent) {
-							parent = parent.parentNode;
-							if(parent.className.indexOf("excel-table") != -1)
-								break;
-						}
-                		var top = e.target.offsetTop,
-                			left = parent.offsetLeft,
-                			cellHeight = e.target.offsetHeight-8,
-                			cellWidth = e.target.offsetWidth-11;
+                        /* store cell value in first column for reset position purpose after sorting */
+                        scope.recordEditing = $filter('getCurrentEditRecord')(scope[attrs.data], scope.model, e.target.dataset.record);
+                        /* get position of clicked row */
+                        var parent = e.target;
+                        while (parent) {
+                            parent = parent.parentNode;
+                            if(parent.className.indexOf("excel-table") != -1)
+                                break;
+                        }
+                        var top = e.target.offsetTop,
+                            left = parent.offsetLeft,
+                            cellHeight = e.target.offsetHeight,
+                            cellWidth = e.target.offsetWidth;
 
-                		/* show form edit inline and calculate height of input */
-                		var allCellInput = parent.parentNode.getElementsByClassName('cell-edit');
-                		for(var i=0; i < allCellInput.length; i++){
-                			/* store cell value in first column for reset position purpose after sorting */
-                			if(i == 0){
-                				scope.recordEditing = scope.data[e.target.dataset.index];
-                			}
+                        /* show form edit inline and calculate height of input */
+                        var allCellInput = parent.parentNode.getElementsByClassName('cell-edit');
+
+                        for(var i=0; i < allCellInput.length; i++){
                 			allCellInput[i].style.width = cellWidth+'px';
-                			allCellInput[i].value = scope.data[e.target.dataset.index][allCellInput[i].parentNode.dataset.field];
+                            switch(allCellInput[i].parentNode.dataset.type){
+                                case "date":
+                                    var tempValue = new Date(scope.recordEditing[allCellInput[i].parentNode.dataset.field]);
+                                    if(tempValue instanceof Date && tempValue.toString().toLowerCase() != "invalid date")
+                                        scope.datefield[allCellInput[i].parentNode.dataset.field] = tempValue;
+                                    else
+                                        scope.datefield[allCellInput[i].parentNode.dataset.field] = new Date();
+                                    break;
+                                case "list":
+                                    var listData = scope.listIn[allCellInput[i].parentNode.dataset.field];
+                                    var mapping = new String(scope.recordEditing[allCellInput[i].parentNode.dataset.field]);
+                                    var keyMap = scope.listCfg[allCellInput[i].parentNode.dataset.field].valueDisplay;
+                                    scope.listIn[allCellInput[i].parentNode.dataset.field] = $filter('mappingDataToList')(listData, mapping, keyMap);
+                                    break;
+                                default:
+                                    allCellInput[i].value = scope.recordEditing[allCellInput[i].parentNode.dataset.field];
+                                    break;
+                            }
                 		}
                 		scope.tableEl = parent.parentNode;
-                		scope.recordIndex = e.target.dataset.index;
-
-                		scope.tableEl.querySelector('.row-edit-form').style.display = "block";
-                		scope.tableEl.querySelector('.row-edit-form').style.top = top+'px';
-                		scope.tableEl.querySelector('.row-edit-form').style.left = left+'px';
-                		scope.tableEl.querySelector('.row-edit-form').style.height = cellHeight+'px';
+                        scope.tableEl.querySelector('.row-edit-form').style.display = "block";
+                        scope.tableEl.querySelector('.row-edit-form').style.top = top+'px';
+                        scope.tableEl.querySelector('.row-edit-form').style.left = left+'px';
+                        scope.tableEl.querySelector('.row-edit-form').style.height = cellHeight+'px';
+                        scope.$apply();
                 	}
                 });
 				/* watching data changed for reset position of form */
@@ -77,7 +183,6 @@ angular.module('xtable.rowEdit', [])
 				});
 				scope.save = function(){
 					var tableEl = scope.tableEl;
-                	var recordIndex = scope.recordIndex;
                 	var allCellInput = tableEl.getElementsByClassName('cell-edit');
             		for(var i=0; i < allCellInput.length; i++){
             			var value = null;
@@ -88,10 +193,27 @@ angular.module('xtable.rowEdit', [])
             				case "string":
             					value = allCellInput[i].value.toString();
             					break;
+                            case "date":
+                                var tempValue = scope.datefield[allCellInput[i].parentNode.dataset.field];
+                                if(tempValue instanceof Date){
+                                    value = tempValue;
+                                }
+                                else
+                                    value = "Invalid Date";
+                                break;
+                            case "list":
+                                var tempValue = scope.listOut[allCellInput[i].parentNode.dataset.field];
+                                var keyMap = scope.listCfg[allCellInput[i].parentNode.dataset.field].valueDisplay;
+                                value = [];
+                                for(var k in tempValue){
+                                    value.push(tempValue[k][keyMap])
+                                }
+                                value = value.join();
+                                break;
             				default:
             					break;
             			}
-            			scope.data[recordIndex][allCellInput[i].parentNode.dataset.field] = value;
+            			scope.recordEditing[allCellInput[i].parentNode.dataset.field] = value;
             		}
 					scope.tableEl.querySelector('.row-edit-form').style.display = "none";
 				}
@@ -99,6 +221,9 @@ angular.module('xtable.rowEdit', [])
 					scope.tableEl.querySelector('.row-edit-form').style.display = "none";
 					scope.recordEditing = undefined;
 				}
+                scope.openDatePicker = function(e, field){
+                    scope.picker[field].opened = true;
+                }
             }
         };
     })

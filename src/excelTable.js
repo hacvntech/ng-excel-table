@@ -4,12 +4,12 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 19:00:54
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-14 00:21:28
+* @Last Modified time: 2016-04-18 10:01:05
 */
 
 'use strict';
 
-angular.module('excel-table', [])
+angular.module('excel-table', ['ui.bootstrap'])
     .factory('excelTableModel', function() {
         var dataModel = null,
             model = null,
@@ -40,6 +40,15 @@ angular.module('excel-table', [])
             getReverse: function(){
                 return reverse;
             }
+        };
+    })
+    .filter('startFrom', function () {
+        return function (input, start) {
+            if (input) {
+                start = +start;
+                return input.slice(start);
+            }
+            return [];
         };
     })
     .directive('tbCell', function ($window, excelTableModel) {
@@ -94,13 +103,42 @@ angular.module('excel-table', [])
         return {
             scope: {
 	            model:'=model',
-	            data:'=data'
+                data:'=data',
+                tableOption:'=tblOption'
 	        },
             restrict: 'E',
             templateUrl: 'template/table.html',
             link: function (scope, element, attrs) {
                 excelTableModel.setModel(scope.model);
                 excelTableModel.setDataModel(scope.data);
+                scope.primaryKey = attrs.primary;
+                if(scope.tableOption.allowPaging){
+                    scope.paging = {
+                        currentPage: 1,
+                        totalItems: undefined,
+                        pagingSize: undefined,
+                        itemsPerPage: 5,
+                        boundaryLinks: false,
+                        boundaryLinkNumbers: false,
+                        rotate: true,
+                        directionLinks: true,
+                        firstText: 'First',
+                        previousText: 'Previous',
+                        nextText: 'Next',
+                        lastText: 'Last',
+                        forceEllipses: false
+                    };
+                    Object.keys(scope.paging).map(function(key, index){
+                        if(scope.tableOption.pagingOption[key] != undefined)
+                            scope.paging[key] = scope.tableOption.pagingOption[key]
+                    });
+                    scope.pageChanged = function(){
+                        /* get remote paging data */
+                        if(scope.tableOption.pagingType == "remote"){
+                            console.log(scope.paging.currentPage);
+                        }
+                    }
+                }
                 var orderBy = $filter('orderBy');
                 scope.order = function(predicate) {
                     scope.predicate = predicate;

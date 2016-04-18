@@ -6,8 +6,33 @@
 				<i class="fa fa-sort-amount-asc"></i>
 			</span>
 		</div>
-		<div tb-cell data-index="{{$index}}" class="tb-cell row-{{$index+1}}" ng-repeat="cell in data track by $index">
-			{{cell[col.dataIndex]}}
+		<div tb-cell data-index="{{$index}}" data-record="{{cell[primaryKey]}}" class="tb-cell row-{{$index+1}}" ng-repeat="cell in data | startFrom:(paging.currentPage-1)*paging.itemsPerPage | limitTo:paging.itemsPerPage track by $index" ng-switch="col.type">
+			<span ng-switch-when="date" ng-bind="cell[col.dataIndex] | date:col.dateFormat"></span>
+			<span ng-switch-default ng-bind="cell[col.dataIndex]"></span>
 		</div>
+	</div>
+</div>
+<div class="table-control form-group" ng-if="tableOption.allowPaging">
+	<uib-pagination 
+		class="pagination-sm right"
+		ng-model="paging.currentPage"
+		total-items="paging.totalItems"
+		max-size="paging.pagingSize"
+		items-per-page="paging.itemsPerPage"
+		boundary-links="paging.boundaryLinks"
+		boundary-link-numbers="paging.boundaryLinkNumbers"
+		rotate="paging.rotate"
+		direction-links="paging.directionLinks"
+		first-text="{{paging.firstText}}"
+		previous-text="{{paging.previousText}}"
+		next-text="{{paging.nextText}}"
+		last-text="{{paging.lastText}}"
+		force-ellipses="paging.forceEllipses"
+		ng-change="pageChanged()"
+	></uib-pagination>
+	<div class="pager-limitTo">
+		<label>Per page:</label>
+		<input type="number" class="form-control" ng-model="paging.itemsPerPage" min="1" max="100" step="1">
+		<label>{{paging.itemsPerPage > 1 ? 'records' : 'record'}}</label>
 	</div>
 </div>

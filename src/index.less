@@ -19,6 +19,7 @@ excel-table {
 	border-style: solid;
 	border-color: #e7eaec;
 	padding: 10px;
+	min-height: 41px;
 }
 .excel-table .tb-cell:last-child {
 	border-width: 0px;
@@ -65,6 +66,23 @@ excel-table {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     transform: translate(0,0);
+}
+.table-control:after {
+	clear: both;
+	content: " ";
+	display: block;
+}
+.table-control .pagination-sm.right {
+	float: right;
+}
+.table-control .pager-limitTo {
+	float: left;
+	width: 200px;
+	margin: 20px 0;
+}
+.table-control .pager-limitTo input.form-control{
+	display: inline-block;
+	width: 70px;
 }
 // injector
 // endinjector

@@ -24,7 +24,7 @@ gulp.task('partials', function () {
     .pipe(gulp.dest(paths.tmp + '/partials/'));
 });
 
-gulp.task('html', ['inject-build', 'partials'], function () {
+gulp.task('html', ['inject', 'partials'], function () {
   var partialsInjectFile = gulp.src(paths.tmp + '/partials/templateCacheHtml.js', { read: false });
   var partialsInjectOptions = {
     starttag: '<!-- inject:partials -->',
@@ -68,6 +68,13 @@ gulp.task('images', function () {
     .pipe(gulp.dest(paths.dist + '/assets/images/'));
 });
 
+gulp.task('fonts', function () {
+  return gulp.src($.mainBowerFiles())
+    .pipe($.filter('**/*.{eot,svg,ttf,woff}'))
+    .pipe($.flatten())
+    .pipe(gulp.dest(paths.dist + '/fonts/'));
+});
+
 gulp.task('module', function () {
   return gulp.src(paths.src + '/**/*.js')
     .pipe(ngAnnotate())
@@ -79,7 +86,7 @@ gulp.task('clean', function (done) {
   $.del([paths.dist + '/', paths.tmp + '/'], done);
 });
 
-gulp.task('build', ['html', 'images', 'module'], function(){
+gulp.task('build', ['html', 'images', 'fonts', 'module'], function(){
   gulp.src(paths.dist + '/scripts/*.js')
     .pipe(gulp.dest(paths.dist + '/scripts/'));
 });
