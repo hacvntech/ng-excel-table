@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-12 17:58:51
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-18 10:13:22
+* @Last Modified time: 2016-04-18 16:12:35
 */
 
 'use strict';
@@ -58,7 +58,7 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
             return list;
         }
     })
-    .directive('rowEditing', function ($window, excelTableModel, $templateRequest, $compile, defaults, $filter) {
+    .directive('rowEditing', function ($window, excelTableModel, $templateRequest, $compile, defaults, $filter, $http) {
         return {
             restrict: 'A',
             link: function (scope, element, attrs) {
@@ -114,10 +114,24 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
 					element.append(tpl);
 				});
 				element.on('dblclick', function(e){
-                    if(e.target && (e.target.matches('.row-'+(parseInt(e.target.dataset.index)+1)) || e.target.matches('.ng-binding') )){
-                        if(e.target.matches('.ng-binding')){
+                    var els = [];
+                    while(e.target){
+                        els.unshift(e.target);
+                        if(e.target.matches('.tb-row.tb-cell')) {
+                            break;
+                        }
+                        else if(!e.target.matches('.xtable')) {
                             e.target = e.target.parentNode;
                         }
+                        else{
+                            return false;
+                        }
+                    }
+                    // if(e.target && e.target.matches('.row-'+(parseInt(e.target.dataset.index)+1))){
+                    if(e.target && e.target.matches('.tb-row.tb-cell')){
+                        // if(e.target.matches('.ng-binding')){
+                        //     e.target = e.target.parentNode;
+                        // }
                 		scope.data = scope[attrs.data];
 	            		scope.model = scope[attrs.model];
                         /* store cell value in first column for reset position purpose after sorting */
@@ -216,11 +230,26 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
             			scope.recordEditing[allCellInput[i].parentNode.dataset.field] = value;
             		}
 					scope.tableEl.querySelector('.row-edit-form').style.display = "none";
+                    scope.saveUpdatedRecord();
 				}
 				scope.cancel = function(){
 					scope.tableEl.querySelector('.row-edit-form').style.display = "none";
 					scope.recordEditing = undefined;
 				}
+                scope.saveUpdatedRecord = function(){
+                    // if(scope[attrs.tblOption].type ==)
+                    var httpOpts = {
+                        method: 'POST',
+                        withCredentials: true,
+                        data: scope.recordEditing, 
+                        url: scope[attrs.tblOption].rud.update,
+                    };
+                    $http(httpOpts).then(function successCallback(response) {
+                        console.log(response);
+                    }, function errorCallback(response) {
+                        console.log(response);
+                    });
+                }
                 scope.openDatePicker = function(e, field){
                     scope.picker[field].opened = true;
                 }

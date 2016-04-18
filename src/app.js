@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 14:33:56
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-18 09:51:23
+* @Last Modified time: 2016-04-18 15:55:09
 */
 'use strict';
 var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
@@ -17,8 +17,13 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
             {id: "5", name: "Chrome",             maker: "(Google)"}
         ];
         $scope.tblOption = {
+        	type: 'remote',
         	allowPaging: true,
-        	pagingType: 'local',
+        	rud: {
+        		read: 'http://localhost/inspinia/index.php',
+        		update: 'http://localhost/inspinia/index.php',
+        		del: 'http://localhost/inspinia/index.php'
+        	},
         	pagingOption: {
         		totalItems: 3,
         		pagingSize: 3,
@@ -56,25 +61,7 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 			multiSelect: true,
 			store: $scope.listBrowser
 		}];
-		var dataValue = [{
-			id: 1,
-			date: new Date(),
-			browser: '1,2'
-			// email: 'test4@gmail.com'
-		},{
-			id: 2,
-			date: new Date(),
-			browser: '2,3'
-			// email: 'test2@gmail.com'
-		},{
-			id: 3,
-			date: new Date(),
-			browser: '3,4'
-			// email: 'test6@gmail.com'
-		}];
 		$scope.tblModel = dataModel;
-		$scope.tblData = dataValue;		
-		// $scope.tblData1 = dataValue;
 
 	});
 	

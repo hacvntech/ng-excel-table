@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 19:00:54
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-18 10:01:05
+* @Last Modified time: 2016-04-18 15:57:20
 */
 
 'use strict';
@@ -75,6 +75,7 @@ angular.module('excel-table', ['ui.bootstrap'])
                 });
                 element.on('click', function() {
                     if(attrs.class.indexOf('sortable') != -1){
+                        var isAscending = true;
                         var elms = document.getElementsByClassName('sortable');
                         var icon = element[0].querySelector('.fa');
                         var field = element[0].className.substring(element[0].className.indexOf("col-")+4, element[0].className.indexOf(" ng-class"));
@@ -88,18 +89,20 @@ angular.module('excel-table', ['ui.bootstrap'])
 
                         if(icon.className.indexOf('desc') == -1){
                             icon.className = icon.className.replace('asc','desc');
+                            isAscending = false;
                         }
                         else{
                             icon.className = icon.className.replace('desc','asc');
+                            isAscending = true;
                         }
                         /* call order function */
-                        scope.order(field);
+                        scope.order(field, isAscending);
                     }
                 });
             }
         };
     })
-    .directive('excelTable', function ($compile, $filter, excelTableModel) {
+    .directive('excelTable', function ($compile, $filter, excelTableModel, $http) {
         return {
             scope: {
 	            model:'=model',
@@ -109,6 +112,43 @@ angular.module('excel-table', ['ui.bootstrap'])
             restrict: 'E',
             templateUrl: 'template/table.html',
             link: function (scope, element, attrs) {
+                scope.dataParams = {};
+                var orderBy = $filter('orderBy');
+                scope.order = function(predicate, isAscending) {
+                    if(scope.tableOption.type == "remote"){
+                        /* remote sorting */
+                        scope.predicate = predicate;
+                        scope.dataParams['sorting'] = {
+                            sortBy: predicate,
+                            ascending: isAscending
+                        };
+                        scope.getRecords();
+                    }
+                    else{
+                        /* local sorting */
+                        scope.predicate = predicate;
+                        scope.data = orderBy(scope.data, predicate, !isAscending);
+                        scope.$apply();
+                    }
+                };
+                scope.getRecords = function(){
+                    var httpOpts = {
+                        method: 'POST',
+                        withCredentials: true,
+                        url: scope.tableOption.rud.read,
+                    };
+                    if(scope.tableOption.type == 'remote'){
+                        httpOpts['data'] = scope.dataParams;
+                    }
+                    $http(httpOpts).then(function successCallback(response) {
+                        scope.data = response.data.data;
+                        if(scope.tableOption.allowPaging){
+                            scope.paging.totalItems = response.data.totalItems;
+                        }
+                    }, function errorCallback(response) {
+                        console.log(response);
+                    });
+                };
                 excelTableModel.setModel(scope.model);
                 excelTableModel.setDataModel(scope.data);
                 scope.primaryKey = attrs.primary;
@@ -132,20 +172,30 @@ angular.module('excel-table', ['ui.bootstrap'])
                         if(scope.tableOption.pagingOption[key] != undefined)
                             scope.paging[key] = scope.tableOption.pagingOption[key]
                     });
+                    scope.dataParams['paging'] = {
+                        start: 0,
+                        limit: scope.paging.itemsPerPage
+                    };
+                    scope.getRecords();
                     scope.pageChanged = function(){
                         /* get remote paging data */
-                        if(scope.tableOption.pagingType == "remote"){
-                            console.log(scope.paging.currentPage);
+                        if(scope.tableOption.type == "remote"){
+                            scope.dataParams['paging'].start = (scope.paging.currentPage - 1) * scope.paging.itemsPerPage;
+                            scope.getRecords();
+                        }
+                    }
+                    scope.updateTableData = function(){
+                        if(scope.tableOption.type == "remote"){
+                            scope.paging.currentPage = 1;
+                            scope.dataParams['paging'].start = 0;
+                            scope.dataParams['paging'].limit = scope.paging.itemsPerPage;
+                            scope.getRecords();
                         }
                     }
                 }
-                var orderBy = $filter('orderBy');
-                scope.order = function(predicate) {
-                    scope.predicate = predicate;
-                    scope.reverse = (scope.predicate === predicate) ? !scope.reverse : false;
-                    scope.data = orderBy(scope.data, predicate, scope.reverse);
-                    scope.$apply();
-                };
+                else{
+                    scope.getRecords();
+                }
             }
         };
     })
