@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 14:33:56
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-19 16:17:28
+* @Last Modified time: 2016-04-19 16:43:43
 */
 'use strict';
 var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
@@ -18,17 +18,18 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
         ];
         $scope.tblOption = {
         	type: 'local',
-        	forceFit: false,
+        	forceFit: true,
         	allowFilter: true,
-        	// allowPaging: true,
+        	allowPaging: true,
+        	dblClickToEdit: false,
         	rud: {
         		read: 'http://localhost/inspinia/index.php',
         		update: 'http://localhost/inspinia/index.php'
         	},
         	pagingOption: {
-        		totalItems: 3,
-        		pagingSize: 3,
-        		itemsPerPage: 1,
+        		// totalItems: 3,
+        		pagingSize: 1,
+        		itemsPerPage: 3,
 				boundaryLinkNumbers: true,
 				rotate: false
         	}
@@ -40,15 +41,15 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 			}
 		}
 		var dataModel = [{
-		// 	dataIndex: 'id',
-		// 	title: 'ID',
-		// 	type: 'number',
-		// 	allowFilter: false,
-		// 	width: 60,
-		// 	primary: true,
-		// 	sortable: true,
-		// 	editable: false
-		// },{
+			dataIndex: 'id',
+			title: 'ID',
+			type: 'number',
+			allowFilter: false,
+			width: 120,
+			primary: true,
+			sortable: true,
+			editable: false
+		},{
 			dataIndex: 'date',
 			title: 'Date',
 			type: 'date',
@@ -73,7 +74,7 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 			title: 'Delete',
 			type: 'html',
 			width: 200,
-			html: '<span ng-click="col.func($event, cell)"><i class="fa fa-trash" style="color:red;"></i></span>',
+			html: '<span ng-click="col.func($event, cell)"><i class="fa fa-trash" style="color:red;"></i></span><span ng-click="editRow($event)"><i class="fa fa-pencil-square-o" style="color:blue;"></i></span>',
 			func: $scope.cellFn_test
 		}];
 		$scope.tblModel = dataModel;

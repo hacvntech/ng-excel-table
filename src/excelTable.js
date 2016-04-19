@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 19:00:54
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-19 16:10:35
+* @Last Modified time: 2016-04-19 17:00:05
 */
 
 'use strict';
@@ -73,6 +73,9 @@ angular.module('excel-table', ['ui.bootstrap','ngSanitize'])
 						}
                     }
                 });
+                scope.editRow = function(e){
+                    scope.$emit('editRow', e);
+                }
                 element.on('click', function() {
                     if(attrs.class.indexOf('sortable') != -1){
                         if(scope.recordEditing != undefined){
@@ -145,6 +148,7 @@ angular.module('excel-table', ['ui.bootstrap','ngSanitize'])
                     forceFit: true, // true: column fit table, false: column has actual size
                     allowPaging: false,
                     allowFilter: false,
+                    dblClickToEdit: true,
                     rud: {
                         read: undefined,
                         update: undefined

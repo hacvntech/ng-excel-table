@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-12 17:58:51
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-19 16:15:52
+* @Last Modified time: 2016-04-19 17:01:15
 */
 
 'use strict';
@@ -113,7 +113,7 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
 					var tpl = $compile(html)(scope);
 					element.append(tpl);
 				});
-                element.on('dblclick', function(e){
+                scope.editRow = function(e){
                     element[0].querySelector('.ctrl-panel-wrapper').style.left = (element[0].offsetWidth/2 - 100) + element[0].scrollLeft + 'px';
                     var els = [];
                     while(e.target){
@@ -131,7 +131,7 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                     // if(e.target && e.target.matches('.row-'+(parseInt(e.target.dataset.index)+1))){
                     if(e.target && e.target.matches('.tb-row.tb-cell')){
                         scope.data = scope[attrs.data];
-	            		scope.model = scope[attrs.model];
+                        scope.model = scope[attrs.model];
                         /* store cell value in first column for reset position purpose after sorting */
                         scope.recordEditing = $filter('getCurrentEditRecord')(scope[attrs.data], scope.model, e.target.dataset.record);
                         $rootScope.$emit('rowEditing', scope.recordEditing);
@@ -151,7 +151,7 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                         var allCellInput = parent.parentNode.getElementsByClassName('cell-edit');
 
                         for(var i=0; i < allCellInput.length; i++){
-                			allCellInput[i].style.width = cellWidth+'px';
+                            allCellInput[i].style.width = cellWidth+'px';
                             switch(allCellInput[i].parentNode.dataset.type){
                                 case "date":
                                     var tempValue = new Date(scope.recordEditing[allCellInput[i].parentNode.dataset.field]);
@@ -170,7 +170,7 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                                     allCellInput[i].value = scope.recordEditing[allCellInput[i].parentNode.dataset.field];
                                     break;
                             }
-                		}
+                        }
                         scope.tableEl = parent.parentNode;
                         if(!scope[attrs.tblOption].forceFit){
                             var totalWidth = 0;
@@ -183,9 +183,21 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                         scope.tableEl.querySelector('.row-edit-form').style.top = top+'px';
                         scope.tableEl.querySelector('.row-edit-form').style.left = left+'px';
                         scope.tableEl.querySelector('.row-edit-form').style.height = cellHeight+'px';
-                        scope.$apply();
-                	}
-                });
+                        if(scope[attrs.tblOption].dblClickToEdit){        
+                            scope.$apply();
+                        }
+                    }
+                }
+                if(scope[attrs.tblOption].dblClickToEdit){
+                    element.on('dblclick', function(e){
+                        scope.editRow(e);
+                    });
+                }
+                else{
+                    scope.$on('editRow', function(e, el){
+                        scope.editRow(el);
+                    })
+                }
 				/* watching data changed for reset position of form */
 				scope.$watch(attrs.data, function(value) {
 					if(scope.recordEditing != undefined){

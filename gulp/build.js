@@ -24,7 +24,7 @@ gulp.task('partials', function () {
     .pipe(gulp.dest(paths.tmp + '/partials/'));
 });
 
-gulp.task('html', ['inject', 'partials'], function () {
+gulp.task('html', ['inject-build', 'partials'], function () {
   var partialsInjectFile = gulp.src(paths.tmp + '/partials/templateCacheHtml.js', { read: false });
   var partialsInjectOptions = {
     starttag: '<!-- inject:partials -->',
@@ -32,8 +32,8 @@ gulp.task('html', ['inject', 'partials'], function () {
     addRootSlash: false
   };
 
-  var htmlFilter = $.filter('*.html');
-  var jsFilter = $.filter('**/*.js');
+  var htmlFilter = $.filter('**/*.html');
+  var jsFilter = $.filter('**/**/*.js');
   var cssFilter = $.filter('**/*.css');
   var assets;
 
