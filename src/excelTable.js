@@ -4,12 +4,12 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 19:00:54
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-19 17:00:05
+* @Last Modified time: 2016-04-19 17:36:02
 */
 
 'use strict';
 
-angular.module('excel-table', ['ui.bootstrap','ngSanitize'])
+angular.module('excel-table', ['ui.bootstrap'])
     .factory('excelTableModel', function() {
         var dataModel = null,
             model = null,
@@ -130,7 +130,7 @@ angular.module('excel-table', ['ui.bootstrap','ngSanitize'])
             );
         };
     }])
-    .directive('excelTable', function ($compile, $filter, excelTableModel, $http, $rootScope, $sanitize) {
+    .directive('excelTable', function ($compile, $filter, excelTableModel, $http, $rootScope) {
         return {
             scope: {
 	            model:'=model',
