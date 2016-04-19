@@ -4,12 +4,12 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 19:00:54
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-18 15:57:20
+* @Last Modified time: 2016-04-19 16:10:35
 */
 
 'use strict';
 
-angular.module('excel-table', ['ui.bootstrap'])
+angular.module('excel-table', ['ui.bootstrap','ngSanitize'])
     .factory('excelTableModel', function() {
         var dataModel = null,
             model = null,
@@ -75,6 +75,10 @@ angular.module('excel-table', ['ui.bootstrap'])
                 });
                 element.on('click', function() {
                     if(attrs.class.indexOf('sortable') != -1){
+                        if(scope.recordEditing != undefined){
+                            // alert("Cannot sort column while editing");
+                            return false;
+                        }
                         var isAscending = true;
                         var elms = document.getElementsByClassName('sortable');
                         var icon = element[0].querySelector('.fa');
@@ -102,7 +106,28 @@ angular.module('excel-table', ['ui.bootstrap'])
             }
         };
     })
-    .directive('excelTable', function ($compile, $filter, excelTableModel, $http) {
+    .directive('compileHtml', ['$compile', function ($compile) {
+        return function(scope, element, attrs) {
+            scope.$watch(
+                function(scope) {
+                    // watch the 'compile' expression for changes
+                    return scope.$eval(attrs.compileHtml);
+                },
+                function(value) {
+                    // when the 'compile' expression changes
+                    // assign it into the current DOM
+                    element.html(value);
+
+                    // compile the new DOM and link it to the current
+                    // scope.
+                    // NOTE: we only compile .childNodes so that
+                    // we don't get into infinite loop compiling ourselves
+                    $compile(element.contents())(scope);
+                }
+            );
+        };
+    }])
+    .directive('excelTable', function ($compile, $filter, excelTableModel, $http, $rootScope, $sanitize) {
         return {
             scope: {
 	            model:'=model',
@@ -112,7 +137,54 @@ angular.module('excel-table', ['ui.bootstrap'])
             restrict: 'E',
             templateUrl: 'template/table.html',
             link: function (scope, element, attrs) {
+                scope.cellFilter = {};
                 scope.dataParams = {};
+                scope.totalWidth = '100%';
+                scope.tblDefaultOptions = {
+                    type: 'local',
+                    forceFit: true, // true: column fit table, false: column has actual size
+                    allowPaging: false,
+                    allowFilter: false,
+                    rud: {
+                        read: undefined,
+                        update: undefined
+                    },
+                    pagingOption: undefined
+                };
+                
+                Object.keys(scope.tblDefaultOptions).map(function(key, index){
+                    if(scope.tableOption != undefined)
+                        scope.tblDefaultOptions[key] = scope.tableOption[key];
+                });
+                /* re-assign default option after merge user options and default options */
+                scope.tableOption = scope.tblDefaultOptions;
+
+                /* event scroll y-axis of page and set position of control-wrapper */
+                element.bind("scroll", function() {
+                    // console.log(this.querySelector('.ctrl-panel-wrapper').offsetLeft)
+                    this.querySelector('.ctrl-panel-wrapper').style.left = (this.offsetWidth/2 - 100) + this.scrollLeft + 'px';
+                    // scope.$apply();
+                });
+                
+                /* calculate column's width if forceFit = true */
+                if(scope.tableOption.forceFit){
+                    var totalWidth = 0;
+                    for(var m = 0; m < scope.model.length; m++){
+                        totalWidth += scope.model[m].width;
+                    }
+                    for(var m = 0; m < scope.model.length; m++){
+                        scope.model[m].width = ((scope.model[m].width/totalWidth) * 100) + '%';
+                    }
+                }
+                else{
+                    var totalWidth = 0;
+                    for(var m = 0; m < scope.model.length; m++){
+                        totalWidth += scope.model[m].width;
+                        scope.model[m].width = scope.model[m].width + 'px';
+                    }
+                    scope.totalWidth = (totalWidth + 2) + 'px';
+                }
+
                 var orderBy = $filter('orderBy');
                 scope.order = function(predicate, isAscending) {
                     if(scope.tableOption.type == "remote"){
@@ -149,6 +221,9 @@ angular.module('excel-table', ['ui.bootstrap'])
                         console.log(response);
                     });
                 };
+                $rootScope.$on('rowEditing', function(event, data) {
+                    scope.recordEditing = data
+                });
                 excelTableModel.setModel(scope.model);
                 excelTableModel.setDataModel(scope.data);
                 scope.primaryKey = attrs.primary;
@@ -185,6 +260,10 @@ angular.module('excel-table', ['ui.bootstrap'])
                         }
                     }
                     scope.updateTableData = function(){
+                        if(scope.recordEditing != undefined){
+                            // alert("Cannot paging while editing");
+                            return false;
+                        }
                         if(scope.tableOption.type == "remote"){
                             scope.paging.currentPage = 1;
                             scope.dataParams['paging'].start = 0;
@@ -196,6 +275,21 @@ angular.module('excel-table', ['ui.bootstrap'])
                 else{
                     scope.getRecords();
                 }
+                scope.$watch('cellFilter', function (newVal, oldVal) {
+                    if(scope.tableOption.type == "remote"){
+                        scope.paging.currentPage = 1;
+                        scope.dataParams['search'] = newVal;
+                        scope.getRecords();
+                    }
+                    else{
+                        scope.filtered = $filter('filter')(scope.data, newVal);
+                        if(scope.filtered != undefined && scope.paging != undefined){
+                            scope.paging.totalItems = scope.filtered.length;
+                            // scope.noOfPages = Math.ceil($scope.totalItems / $scope.entryLimit);
+                            scope.currentPage = 1;
+                        }
+                    }
+                }, true);
             }
         };
     })

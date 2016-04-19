@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-12 17:58:51
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-18 16:12:35
+* @Last Modified time: 2016-04-19 16:15:52
 */
 
 'use strict';
@@ -58,7 +58,7 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
             return list;
         }
     })
-    .directive('rowEditing', function ($window, excelTableModel, $templateRequest, $compile, defaults, $filter, $http) {
+    .directive('rowEditing', function ($window, excelTableModel, $templateRequest, $compile, defaults, $filter, $http, $rootScope) {
         return {
             restrict: 'A',
             link: function (scope, element, attrs) {
@@ -113,7 +113,8 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
 					var tpl = $compile(html)(scope);
 					element.append(tpl);
 				});
-				element.on('dblclick', function(e){
+                element.on('dblclick', function(e){
+                    element[0].querySelector('.ctrl-panel-wrapper').style.left = (element[0].offsetWidth/2 - 100) + element[0].scrollLeft + 'px';
                     var els = [];
                     while(e.target){
                         els.unshift(e.target);
@@ -129,13 +130,11 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                     }
                     // if(e.target && e.target.matches('.row-'+(parseInt(e.target.dataset.index)+1))){
                     if(e.target && e.target.matches('.tb-row.tb-cell')){
-                        // if(e.target.matches('.ng-binding')){
-                        //     e.target = e.target.parentNode;
-                        // }
-                		scope.data = scope[attrs.data];
+                        scope.data = scope[attrs.data];
 	            		scope.model = scope[attrs.model];
                         /* store cell value in first column for reset position purpose after sorting */
                         scope.recordEditing = $filter('getCurrentEditRecord')(scope[attrs.data], scope.model, e.target.dataset.record);
+                        $rootScope.$emit('rowEditing', scope.recordEditing);
                         /* get position of clicked row */
                         var parent = e.target;
                         while (parent) {
@@ -172,7 +171,14 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                                     break;
                             }
                 		}
-                		scope.tableEl = parent.parentNode;
+                        scope.tableEl = parent.parentNode;
+                        if(!scope[attrs.tblOption].forceFit){
+                            var totalWidth = 0;
+                            for(var m = 0; m < scope.model.length; m++){
+                                totalWidth += parseFloat(scope.model[m].width);
+                            }
+                            scope.tableEl.querySelector('.row-edit-form').style.width = (totalWidth + 2) + 'px';
+                        }
                         scope.tableEl.querySelector('.row-edit-form').style.display = "block";
                         scope.tableEl.querySelector('.row-edit-form').style.top = top+'px';
                         scope.tableEl.querySelector('.row-edit-form').style.left = left+'px';
@@ -235,6 +241,7 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
 				scope.cancel = function(){
 					scope.tableEl.querySelector('.row-edit-form').style.display = "none";
 					scope.recordEditing = undefined;
+                    $rootScope.$emit('rowEditing', undefined);
 				}
                 scope.saveUpdatedRecord = function(){
                     // if(scope[attrs.tblOption].type ==)
@@ -246,6 +253,8 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                     };
                     $http(httpOpts).then(function successCallback(response) {
                         console.log(response);
+                        scope.recordEditing = undefined;
+                        $rootScope.$emit('rowEditing', undefined);
                     }, function errorCallback(response) {
                         console.log(response);
                     });

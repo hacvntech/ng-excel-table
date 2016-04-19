@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 14:33:56
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-18 15:55:09
+* @Last Modified time: 2016-04-19 16:17:28
 */
 'use strict';
 var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
@@ -17,12 +17,13 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
             {id: "5", name: "Chrome",             maker: "(Google)"}
         ];
         $scope.tblOption = {
-        	type: 'remote',
-        	allowPaging: true,
+        	type: 'local',
+        	forceFit: false,
+        	allowFilter: true,
+        	// allowPaging: true,
         	rud: {
         		read: 'http://localhost/inspinia/index.php',
-        		update: 'http://localhost/inspinia/index.php',
-        		del: 'http://localhost/inspinia/index.php'
+        		update: 'http://localhost/inspinia/index.php'
         	},
         	pagingOption: {
         		totalItems: 3,
@@ -32,37 +33,50 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 				rotate: false
         	}
         };
+        $scope.cellFn_test = function(e, record){
+			for(var i = 0; i < $scope.tblData.length; i++){
+				if($scope.tblData[i].id == record.id)
+					$scope.tblData.splice(i, 1);
+			}
+		}
 		var dataModel = [{
-			dataIndex: 'id',
-			primary: true,
-			title: 'ID',
-			sortable: true,
-			editable: false,
-			type: 'number'
-		},{
+		// 	dataIndex: 'id',
+		// 	title: 'ID',
+		// 	type: 'number',
+		// 	allowFilter: false,
+		// 	width: 60,
+		// 	primary: true,
+		// 	sortable: true,
+		// 	editable: false
+		// },{
 			dataIndex: 'date',
 			title: 'Date',
 			type: 'date',
+			width: 1400,
 			dateFormat: 'dd-MM-yyyy',
 			disableWeekend: true,
 			minDate: new Date(),
 			startingDay: 1
 		},{
-			// dataIndex: 'email',
-			// title: 'Email',
-			// type: 'string'
 			dataIndex: 'browser',
 			title: 'Browser',
-			sortable: true,
 			type: 'list',
+			width: 240,
+			sortable: true,
 			btnDisplay: 'name',
 			itemDisplay: 'name marker',
 			valueDisplay: 'id',
 			multiSelect: true,
 			store: $scope.listBrowser
+		},{
+			dataIndex: 'id',
+			title: 'Delete',
+			type: 'html',
+			width: 200,
+			html: '<span ng-click="col.func($event, cell)"><i class="fa fa-trash" style="color:red;"></i></span>',
+			func: $scope.cellFn_test
 		}];
 		$scope.tblModel = dataModel;
-
 	});
 	
 	// .run(['$templateCache', function ($templateCache) {

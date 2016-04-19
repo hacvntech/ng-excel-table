@@ -1,6 +1,7 @@
 excel-table {
 	position: relative;
     display: block;
+    overflow: auto;
 }
 .excel-table {
 	border: 1px solid #e7eaec;
@@ -34,17 +35,15 @@ excel-table {
 	font-weight: 700;
 	background-color: white;
 }
-.excel-table .tb-col:first-child,
 .excel-table .tb-col:last-child {
-	border: 0px;
+	border-right-width: 1px;
 }
 .excel-table .tb-col {
 	display: inline;
 	float: left;
-	border-width: 0px 1px;
+	border-width: 0px 0px 0px 1px;
 	border-style: solid;
 	border-color: #e7eaec;
-	width: 33.27%;
 }
 
 .excel-table .tb-cell.header .pull-right {

@@ -1,5 +1,5 @@
 <div class="excel-table row-edit-form">
-	<div class="tb-col" ng-repeat="col in model">
+	<div class="tb-col" ng-repeat="col in model" style="width:{{col.width}}">
 		<div ng-if="col.editable == true || col.editable == undefined" class="tb-cell" data-field="{{col.dataIndex}}" data-type="{{col.type}}" data-dateFormat="{{col.dateFormat}}">
 			<input class="cell-edit" type="number" ng-if="col.type == 'number'">
 			<input class="cell-edit" type="text" ng-if="col.type == 'string'">

@@ -18,6 +18,7 @@
 .excel-table.row-edit-form .tb-cell > select {
 	clear: both;
 	height: 100%;
+	width: 100% !important;
 	padding: 1px 1px 1px 10px;
 	font-size: 14px;
 }
@@ -29,7 +30,7 @@
 }
 .ctrl-panel-container .ctrl-panel-wrapper {
 	display: block;
-	position: fixed;
+	position: absolute;
 	left: 45%;
 	width: 132px;
 }
@@ -55,11 +56,12 @@
 .multiSelect > button
 {
 	width: 100%;
+	overflow: auto;
 	border-radius: 0px;
 	background-image: none;
     border-width: 1px;
     border-style: solid;
-    height: 39px;
+    height: 41px;
     text-align: left;
     color: #333;
 }
@@ -68,6 +70,7 @@
 }
 .cell-edit {
 	height: 100%;
+	width: 100% !important;
 }
 .cell-edit:after{
 	clear: both;
