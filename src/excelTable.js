@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 19:00:54
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-19 17:36:02
+* @Last Modified time: 2016-04-20 23:16:04
 */
 
 'use strict';
@@ -141,7 +141,15 @@ angular.module('excel-table', ['ui.bootstrap'])
             templateUrl: 'template/table.html',
             link: function (scope, element, attrs) {
                 scope.cellFilter = {};
-                scope.dataParams = {};
+                scope.dataParams = {
+                    start: 0,
+                    length: 0,
+                    sort: {
+                        predicate: "",
+                        order: "ASC"
+                    },
+                    search: {}
+                };
                 scope.totalWidth = '100%';
                 scope.tblDefaultOptions = {
                     type: 'local',
@@ -150,6 +158,7 @@ angular.module('excel-table', ['ui.bootstrap'])
                     allowFilter: false,
                     dblClickToEdit: true,
                     rud: {
+                        customScopeParams: undefined,
                         read: undefined,
                         update: undefined
                     },
@@ -165,7 +174,6 @@ angular.module('excel-table', ['ui.bootstrap'])
 
                 /* event scroll y-axis of page and set position of control-wrapper */
                 element.bind("scroll", function() {
-                    // console.log(this.querySelector('.ctrl-panel-wrapper').offsetLeft)
                     this.querySelector('.ctrl-panel-wrapper').style.left = (this.offsetWidth/2 - 100) + this.scrollLeft + 'px';
                     // scope.$apply();
                 });
@@ -191,12 +199,12 @@ angular.module('excel-table', ['ui.bootstrap'])
 
                 var orderBy = $filter('orderBy');
                 scope.order = function(predicate, isAscending) {
-                    if(scope.tableOption.type == "remote"){
+                    if(scope.tableOption.rud.read.type == "remote"){
                         /* remote sorting */
                         scope.predicate = predicate;
-                        scope.dataParams['sorting'] = {
-                            sortBy: predicate,
-                            ascending: isAscending
+                        scope.dataParams['sort'] = {
+                            predicate: predicate,
+                            order: isAscending ? 'ASC' : 'DESC'
                         };
                         scope.getRecords();
                     }
@@ -209,20 +217,36 @@ angular.module('excel-table', ['ui.bootstrap'])
                 };
                 scope.getRecords = function(){
                     var httpOpts = {
-                        method: 'POST',
-                        withCredentials: true,
-                        url: scope.tableOption.rud.read,
+                        url: scope.tableOption.rud.read.url,
+                        method: scope.tableOption.rud.read.method,
+                        withCredentials: scope.tableOption.rud.credentials == undefined ? false : scope.tableOption.rud.credentials,
+                        header: scope.tableOption.rud.header
                     };
-                    if(scope.tableOption.type == 'remote'){
-                        httpOpts['data'] = scope.dataParams;
+                    if(scope.tableOption.rud.read.type == 'remote'){
+                        httpOpts['data'] = scope.tableOption.rud.read.data;
+                        /* merge custom request data with default request data before send */
+                        if(httpOpts['data'][scope.tableOption.rud.customScopeParams] != undefined){
+                            Object.keys(scope.dataParams).map(function(key, index){
+                                if(httpOpts['data'][scope.tableOption.rud.customScopeParams][key] != undefined)
+                                    httpOpts['data'][scope.tableOption.rud.customScopeParams][key] = scope.dataParams[key];
+                            });
+                        }
+                        else{
+                            httpOpts['data'][scope.tableOption.rud.customScopeParams] = scope.dataParams;
+                        }
                     }
                     $http(httpOpts).then(function successCallback(response) {
                         scope.data = response.data.data;
                         if(scope.tableOption.allowPaging){
                             scope.paging.totalItems = response.data.totalItems;
                         }
+                        if(typeof(scope.tableOption.rud.read.fn.success) == "function"){
+                            scope.tableOption.rud.read.fn.success(response);
+                        }
                     }, function errorCallback(response) {
-                        console.log(response);
+                        if(typeof(scope.tableOption.rud.read.fn.success) == "function"){
+                            scope.tableOption.rud.read.fn.failure(response);
+                        }
                     });
                 };
                 $rootScope.$on('rowEditing', function(event, data) {
@@ -251,15 +275,13 @@ angular.module('excel-table', ['ui.bootstrap'])
                         if(scope.tableOption.pagingOption[key] != undefined)
                             scope.paging[key] = scope.tableOption.pagingOption[key]
                     });
-                    scope.dataParams['paging'] = {
-                        start: 0,
-                        limit: scope.paging.itemsPerPage
-                    };
+                    scope.dataParams['start'] = 0;
+                    scope.dataParams['length'] = scope.paging.itemsPerPage;
                     scope.getRecords();
                     scope.pageChanged = function(){
                         /* get remote paging data */
-                        if(scope.tableOption.type == "remote"){
-                            scope.dataParams['paging'].start = (scope.paging.currentPage - 1) * scope.paging.itemsPerPage;
+                        if(scope.tableOption.rud.read.type == "remote"){
+                            scope.dataParams.start = (scope.paging.currentPage - 1) * scope.paging.itemsPerPage;
                             scope.getRecords();
                         }
                     }
@@ -268,10 +290,10 @@ angular.module('excel-table', ['ui.bootstrap'])
                             // alert("Cannot paging while editing");
                             return false;
                         }
-                        if(scope.tableOption.type == "remote"){
+                        if(scope.tableOption.rud.read.type == "remote"){
                             scope.paging.currentPage = 1;
-                            scope.dataParams['paging'].start = 0;
-                            scope.dataParams['paging'].limit = scope.paging.itemsPerPage;
+                            scope.dataParams.start = 0;
+                            scope.dataParams.length = scope.paging.itemsPerPage;
                             scope.getRecords();
                         }
                     }
@@ -280,7 +302,7 @@ angular.module('excel-table', ['ui.bootstrap'])
                     scope.getRecords();
                 }
                 scope.$watch('cellFilter', function (newVal, oldVal) {
-                    if(scope.tableOption.type == "remote"){
+                    if(scope.tableOption.rud.read.type == "remote"){
                         scope.paging.currentPage = 1;
                         scope.dataParams['search'] = newVal;
                         scope.getRecords();

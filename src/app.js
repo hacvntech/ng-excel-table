@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 14:33:56
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-19 16:43:43
+* @Last Modified time: 2016-04-20 23:13:47
 */
 'use strict';
 var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
@@ -17,18 +17,49 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
             {id: "5", name: "Chrome",             maker: "(Google)"}
         ];
         $scope.tblOption = {
-        	type: 'local',
         	forceFit: true,
         	allowFilter: true,
         	allowPaging: true,
-        	dblClickToEdit: false,
+        	dblClickToEdit: true,
         	rud: {
-        		read: 'http://localhost/inspinia/index.php',
-        		update: 'http://localhost/inspinia/index.php'
+        		customScopeParams: 'jsonObject',
+        		read: {
+        			type: 'local',
+        			header: {
+                        'Content-type':'application/json'
+                    },
+                    method: 'POST',
+        			url:'http://localhost/inspinia/index.php',
+        			// url:'http://117.5.76.17:12345/api/customrouter',
+        			data: {
+        				functionName: 'pageSortSearchOrderHeader' 
+        			},
+        			fn: {}
+        		},
+        		update: {
+        			type: 'local',
+        			header: {
+                        'Content-type':'application/json'
+                    },
+                    method: 'POST',
+        			url:'http://localhost/inspinia/index.php',
+        			// url:'http://117.5.76.17:12345/api/customrouter',
+        			data: {
+        				functionName: 'updateOrderHeaderObject' 
+        			},
+        			fn: {
+        				success: function(response){
+        					console.log(response)
+        				},
+        				failure: function(response){
+        					console.log(response)
+        				}
+        			}
+        		}
         	},
         	pagingOption: {
         		// totalItems: 3,
-        		pagingSize: 1,
+        		pagingSize: 3,
         		itemsPerPage: 3,
 				boundaryLinkNumbers: true,
 				rotate: false
@@ -41,36 +72,45 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 			}
 		}
 		var dataModel = [{
-			dataIndex: 'id',
-			title: 'ID',
-			type: 'number',
+			dataIndex: 'booking_no',
+			title: 'Booking No.',
+			type: 'string',
 			allowFilter: false,
 			width: 120,
-			primary: true,
-			sortable: true,
+			sortable: false,
 			editable: false
 		},{
-			dataIndex: 'date',
-			title: 'Date',
-			type: 'date',
-			width: 1400,
+			dataIndex: 'cus_name',
+			title: 'Customer',
+			type: 'string',
+			width: 250
+		},{
+			dataIndex: 'date_empty_cont',
+			title: 'Date Empty Cont',
+			type:'date',
+			width: 200,
 			dateFormat: 'dd-MM-yyyy',
 			disableWeekend: true,
 			minDate: new Date(),
 			startingDay: 1
 		},{
-			dataIndex: 'browser',
-			title: 'Browser',
-			type: 'list',
-			width: 240,
-			sortable: true,
-			btnDisplay: 'name',
-			itemDisplay: 'name marker',
-			valueDisplay: 'id',
-			multiSelect: true,
-			store: $scope.listBrowser
+			dataIndex: 'roah_name',
+			title: 'Tuyen Duong',
+			type:'string',
+			width: 200
 		},{
-			dataIndex: 'id',
+		// 	dataIndex: 'browser',
+		// 	title: 'Browser',
+		// 	type: 'list',
+		// 	width: 240,
+		// 	sortable: true,
+		// 	btnDisplay: 'name',
+		// 	itemDisplay: 'name marker',
+		// 	valueDisplay: 'id',
+		// 	multiSelect: true,
+		// 	store: $scope.listBrowser
+		// },{
+			dataIndex: 'booking_no',
 			title: 'Delete',
 			type: 'html',
 			width: 200,
@@ -79,7 +119,7 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 		}];
 		$scope.tblModel = dataModel;
 	});
-	
 	// .run(['$templateCache', function ($templateCache) {
 	// 	$templateCache.put('template/table.html');
+	// 	$templateCache.put('template/rowediting.html');
 	// }]);

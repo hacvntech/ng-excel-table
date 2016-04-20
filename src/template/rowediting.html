@@ -12,10 +12,15 @@
 			    selection-mode="{{listCfg[col.dataIndex].multiSelect}}">
 			</isteven-multi-select>
 			<div class="cell-edit datepicker" ng-if="col.type == 'date'">
-				<input type="text" class="form-control" uib-datepicker-popup="{{col.dateFormat}}" ng-model="datefield[col.dataIndex]" datepicker-options="picker[col.dataIndex].dateOptions" is-open="picker[col.dataIndex].opened" close-text="Close" />
+				<input type="text" class="form-control" datepicker-popup="{{col.dateFormat}}" ng-model="datefield[col.dataIndex]" is-open="picker[col.dataIndex].opened" min-date="picker[col.dataIndex].dateOptions.minDate" max-date="picker[col.dataIndex].dateOptions.maxDate" datepicker-options="picker[col.dataIndex].dateOptions" date-disabled="picker[col.dataIndex].dateOptions.dateDisabled(date, mode)" close-text="Close" />
 				<span class="input-group-btn">
 					<button type="button" class="btn btn-default" ng-click="openDatePicker($event, col.dataIndex)"><i class="glyphicon glyphicon-calendar"></i></button>
 				</span>
+				<!-- for angular-ui-bootstrap version > 1.3 -->
+				<!-- <input type="text" class="form-control" uib-datepicker-popup="{{col.dateFormat}}" ng-model="datefield[col.dataIndex]" datepicker-options="picker[col.dataIndex].dateOptions" is-open="picker[col.dataIndex].opened" close-text="Close" /> -->
+				<!-- <span class="input-group-btn">
+					<button type="button" class="btn btn-default" ng-click="openDatePicker($event, col.dataIndex)"><i class="glyphicon glyphicon-calendar"></i></button>
+				</span> -->
 			</div>
 		</div>
 		<div ng-if="col.editable == false" class="tb-cell" data-field="{{col.dataIndex}}" data-type="{{col.type}}">

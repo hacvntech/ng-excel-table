@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-12 17:58:51
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-19 17:01:15
+* @Last Modified time: 2016-04-20 22:49:16
 */
 
 'use strict';
@@ -14,17 +14,11 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
 		editable: true
 	})
     .filter('getCurrentEditRecord', function () {
-        return function(obj, model, val) {
-            var primaryKey = null;
-            for (var k in model){
-                if(model[k].primary){
-                    primaryKey = model[k].dataIndex;
-                    break;
-                }
-            }
+        return function(obj, primaryKey, val) {
             for (var index in obj){
-                if(obj[index][primaryKey] == val)
+                if(obj[index][primaryKey] == val){
                     return obj[index];
+                }
             }
         }
     })
@@ -88,14 +82,12 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                 for(var k in allDateField){
                     scope.picker[allDateField[k].dataIndex] = {
                         dateOptions: {
-                            dateDisabled: function(data) {
+                            dateDisabled: function(date, mode) {
                                 if(allDateField[k].disableWeekend){
-                                    var date = data.date,
-                                        mode = data.mode;
                                     return mode === 'day' && (date.getDay() === 0 || date.getDay() === 6);
                                 }
                                 else{
-                                    return true;
+                                    return false;
                                 }
                             },
                             maxDate: allDateField[k].maxDate == undefined ? "" : allDateField[k].maxDate,
@@ -133,7 +125,7 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                         scope.data = scope[attrs.data];
                         scope.model = scope[attrs.model];
                         /* store cell value in first column for reset position purpose after sorting */
-                        scope.recordEditing = $filter('getCurrentEditRecord')(scope[attrs.data], scope.model, e.target.dataset.record);
+                        scope.recordEditing = $filter('getCurrentEditRecord')(scope[attrs.data], attrs.primary, e.target.dataset.record);
                         $rootScope.$emit('rowEditing', scope.recordEditing);
                         /* get position of clicked row */
                         var parent = e.target;
@@ -156,9 +148,9 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                                 case "date":
                                     var tempValue = new Date(scope.recordEditing[allCellInput[i].parentNode.dataset.field]);
                                     if(tempValue instanceof Date && tempValue.toString().toLowerCase() != "invalid date")
-                                        scope.datefield[allCellInput[i].parentNode.dataset.field] = tempValue;
+                                        scope.datefield[allCellInput[i].parentNode.dataset.field] = $filter('date')(tempValue, allCellInput[i].parentNode.dataset.dateformat);
                                     else
-                                        scope.datefield[allCellInput[i].parentNode.dataset.field] = new Date();
+                                        scope.datefield[allCellInput[i].parentNode.dataset.field] = $filter('date')(new Date(), allCellInput[i].parentNode.dataset.dateformat);
                                     break;
                                 case "list":
                                     var listData = scope.listIn[allCellInput[i].parentNode.dataset.field];
@@ -256,22 +248,36 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                     $rootScope.$emit('rowEditing', undefined);
 				}
                 scope.saveUpdatedRecord = function(){
-                    // if(scope[attrs.tblOption].type ==)
-                    var httpOpts = {
-                        method: 'POST',
-                        withCredentials: true,
-                        data: scope.recordEditing, 
-                        url: scope[attrs.tblOption].rud.update,
-                    };
-                    $http(httpOpts).then(function successCallback(response) {
-                        console.log(response);
+                    if(scope[attrs.tblOption].rud.update.type == 'remote'){
+                        var httpOpts = {
+                            url: scope[attrs.tblOption].rud.update.url,
+                            method: scope[attrs.tblOption].rud.read.method,
+                            withCredentials: scope[attrs.tblOption].rud.credentials == undefined ? false : scope.tableOption.rud.credentials,
+                            header: scope[attrs.tblOption].rud.header
+                        };
+                        httpOpts['data'] = scope[attrs.tblOption].rud.update.data;
+                        httpOpts['data'][scope[attrs.tblOption].rud.customScopeParams] = scope.recordEditing;
+
+                        $http(httpOpts).then(function successCallback(response) {
+                            scope.recordEditing = undefined;
+                            $rootScope.$emit('rowEditing', undefined);
+                            if(typeof(scope[attrs.tblOption].rud.update.fn.success) == "function"){
+                                scope[attrs.tblOption].rud.update.fn.success(response);
+                            }
+                        }, function errorCallback(response) {
+                            if(typeof(scope[attrs.tblOption].rud.update.fn.failure) == "function"){
+                                scope[attrs.tblOption].rud.update.fn.failure(response);
+                            }
+                        });
+                    }
+                    else{
                         scope.recordEditing = undefined;
                         $rootScope.$emit('rowEditing', undefined);
-                    }, function errorCallback(response) {
-                        console.log(response);
-                    });
+                    }
                 }
                 scope.openDatePicker = function(e, field){
+                    e.preventDefault();
+                    e.stopPropagation();
                     scope.picker[field].opened = true;
                 }
             }

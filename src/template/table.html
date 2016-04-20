@@ -9,7 +9,7 @@
 		<div ng-if="tableOption.allowFilter" tb-cell class="tb-cell cell-filter col-{{col.dataIndex}}">
 			<input ng-disabled="col.allowFilter == false || col.type == 'html'" class="form-control" type="text" ng-model="cellFilter[col.dataIndex]">
 		</div>
-		<div tb-cell data-index="{{$index}}" data-record="{{cell[primaryKey]}}" class="tb-row tb-cell row-{{$index+1}}" ng-repeat="cell in {true: (data | filter:cellFilter | startFrom:(paging.currentPage-1)*paging.itemsPerPage | limitTo:paging.itemsPerPage), false: (data | filter:cellFilter)}[tableOption.type === 'local'] track by $index" ng-switch="col.type">
+		<div tb-cell data-index="{{$index}}" data-record="{{cell[primaryKey]}}" class="tb-row tb-cell row-{{$index+1}}" ng-repeat="cell in {true: (data | filter:cellFilter | startFrom:(paging.currentPage-1)*paging.itemsPerPage | limitTo:paging.itemsPerPage), false: (data | filter:cellFilter)}[tableOption.rud.read.type == 'local'] track by $index" ng-switch="col.type">
 			<span ng-switch-when="date" ng-bind="cell[col.dataIndex] | date:col.dateFormat"></span>
 			<span ng-switch-when="html" compile-html="col.html"></span>
 			<span ng-switch-default ng-bind="cell[col.dataIndex]"></span>
@@ -17,7 +17,7 @@
 	</div>
 </div>
 <div class="table-control form-group" ng-if="tableOption.allowPaging">
-	<uib-pagination 
+	<pagination 
 		class="pagination-sm right"
 		ng-model="paging.currentPage"
 		total-items="paging.totalItems"
@@ -33,7 +33,8 @@
 		last-text="{{paging.lastText}}"
 		force-ellipses="paging.forceEllipses"
 		ng-change="pageChanged()"
-	></uib-pagination>
+		num-pages="numPages"
+	></pagination>
 	<div class="pager-limitTo">
 		<label>Per page:</label>
 		<input type="number" class="form-control" ng-model="paging.itemsPerPage" min="1" max="100" step="1" ng-change="updateTableData()">

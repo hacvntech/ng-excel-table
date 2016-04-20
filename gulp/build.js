@@ -40,7 +40,7 @@ gulp.task('html', ['inject-build', 'partials'], function () {
   return gulp.src(paths.tmp + '/serve/*.html')
     .pipe($.inject(partialsInjectFile, partialsInjectOptions))
     .pipe(assets = $.useref.assets())
-    .pipe($.rev())
+    // .pipe($.rev()) /* create file revision */
     .pipe(jsFilter)
     .pipe(ngAnnotate())
     .pipe($.uglify({preserveComments: $.uglifySaveLicense}))
