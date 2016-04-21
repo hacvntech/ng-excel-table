@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 14:33:56
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-20 23:13:47
+* @Last Modified time: 2016-04-21 12:04:45
 */
 'use strict';
 var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
@@ -119,7 +119,3 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 		}];
 		$scope.tblModel = dataModel;
 	});
-	// .run(['$templateCache', function ($templateCache) {
-	// 	$templateCache.put('template/table.html');
-	// 	$templateCache.put('template/rowediting.html');
-	// }]);

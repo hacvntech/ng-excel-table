@@ -5,6 +5,17 @@
   ],
   "description": "excel table for angular 1",
   "main": "gulpfile.js",
+  "ignore": [
+    "test",
+    "bower_components",
+    "coverage",
+    "gulp",
+    "node_modules",
+    "node_modules",
+    ".gitignore",
+    "package.json",
+    "gulpfile.js"
+  ],
   "moduleType": [
     "node"
   ],

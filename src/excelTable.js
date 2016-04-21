@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 19:00:54
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-20 23:16:04
+* @Last Modified time: 2016-04-21 14:18:41
 */
 
 'use strict';
@@ -319,3 +319,6 @@ angular.module('excel-table', ['ui.bootstrap'])
             }
         };
     })
+    .run(['$templateCache', function ($templateCache) {
+        $templateCache.put("template/table.html","<div class=\"excel-table\" style=\"width:{{totalWidth}}\"><div class=\"tb-col\" ng-repeat=\"col in model\" style=\"width:{{col.width}}\"><div tb-cell=\"\" class=\"tb-cell header col-{{col.dataIndex}} ng-class:(col.sortable ? \'sortable\' : \'\');\">{{col.title}} <span class=\"pull-right\" ng-if=\"col.sortable\"><i class=\"fa fa-sort-amount-asc\"></i></span></div><div ng-if=\"tableOption.allowFilter\" tb-cell=\"\" class=\"tb-cell cell-filter col-{{col.dataIndex}}\"><input ng-disabled=\"col.allowFilter == false || col.type == \'html\'\" class=\"form-control\" type=\"text\" ng-model=\"cellFilter[col.dataIndex]\"></div><div tb-cell=\"\" data-index=\"{{$index}}\" data-record=\"{{cell[primaryKey]}}\" class=\"tb-row tb-cell row-{{$index+1}}\" ng-repeat=\"cell in {true: (data | filter:cellFilter | startFrom:(paging.currentPage-1)*paging.itemsPerPage | limitTo:paging.itemsPerPage), false: (data | filter:cellFilter)}[tableOption.rud.read.type == \'local\'] track by $index\" ng-switch=\"col.type\"><span ng-switch-when=\"date\" ng-bind=\"cell[col.dataIndex] | date:col.dateFormat\"></span> <span ng-switch-when=\"html\" compile-html=\"col.html\"></span> <span ng-switch-default=\"\" ng-bind=\"cell[col.dataIndex]\"></span></div></div></div><div class=\"table-control form-group\" ng-if=\"tableOption.allowPaging\"><pagination class=\"pagination-sm right\" ng-model=\"paging.currentPage\" total-items=\"paging.totalItems\" max-size=\"paging.pagingSize\" items-per-page=\"paging.itemsPerPage\" boundary-links=\"paging.boundaryLinks\" boundary-link-numbers=\"paging.boundaryLinkNumbers\" rotate=\"paging.rotate\" direction-links=\"paging.directionLinks\" first-text=\"{{paging.firstText}}\" previous-text=\"{{paging.previousText}}\" next-text=\"{{paging.nextText}}\" last-text=\"{{paging.lastText}}\" force-ellipses=\"paging.forceEllipses\" ng-change=\"pageChanged()\" num-pages=\"numPages\"></pagination><div class=\"pager-limitTo\"><label>Per page:</label> <input type=\"number\" class=\"form-control\" ng-model=\"paging.itemsPerPage\" min=\"1\" max=\"100\" step=\"1\" ng-change=\"updateTableData()\"> <label>{{paging.itemsPerPage > 1 ? \'records\' : \'record\'}}</label></div></div>");
+    }]);

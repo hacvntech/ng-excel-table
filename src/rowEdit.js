@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-12 17:58:51
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-20 22:49:16
+* @Last Modified time: 2016-04-21 14:19:04
 */
 
 'use strict';
@@ -271,6 +271,13 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
                         });
                     }
                     else{
+                        var record = scope.recordEditing;
+                        if(typeof(scope[attrs.tblOption].rud.update.fn.success) == "function"){
+                            scope[attrs.tblOption].rud.update.fn.success(record);
+                        }
+                        if(typeof(scope[attrs.tblOption].rud.update.fn.failure) == "function"){
+                            scope[attrs.tblOption].rud.update.fn.failure(record);
+                        }
                         scope.recordEditing = undefined;
                         $rootScope.$emit('rowEditing', undefined);
                     }
@@ -283,3 +290,6 @@ angular.module('xtable.rowEdit', ['isteven-multi-select'])
             }
         };
     })
+    .run(['$templateCache', function ($templateCache) {
+        $templateCache.put("template/rowediting.html","<div class=\"excel-table row-edit-form\"><div class=\"tb-col\" ng-repeat=\"col in model\" style=\"width:{{col.width}}\"><div ng-if=\"col.editable == true || col.editable == undefined\" class=\"tb-cell\" data-field=\"{{col.dataIndex}}\" data-type=\"{{col.type}}\" data-dateformat=\"{{col.dateFormat}}\"><input class=\"cell-edit\" type=\"number\" ng-if=\"col.type == \'number\'\"> <input class=\"cell-edit\" type=\"text\" ng-if=\"col.type == \'string\'\"><isteven-multi-select class=\"cell-edit\" ng-if=\"col.type == \'list\'\" input-model=\"listIn[col.dataIndex]\" output-model=\"listOut[col.dataIndex]\" button-label=\"{{listCfg[col.dataIndex].btnDisplay}}\" item-label=\"{{listCfg[col.dataIndex].itemDisplay}}\" tick-property=\"ticked\" selection-mode=\"{{listCfg[col.dataIndex].multiSelect}}\"></isteven-multi-select><div class=\"cell-edit datepicker\" ng-if=\"col.type == \'date\'\"><input type=\"text\" class=\"form-control\" datepicker-popup=\"{{col.dateFormat}}\" ng-model=\"datefield[col.dataIndex]\" is-open=\"picker[col.dataIndex].opened\" min-date=\"picker[col.dataIndex].dateOptions.minDate\" max-date=\"picker[col.dataIndex].dateOptions.maxDate\" datepicker-options=\"picker[col.dataIndex].dateOptions\" date-disabled=\"picker[col.dataIndex].dateOptions.dateDisabled(date, mode)\" close-text=\"Close\"> <span class=\"input-group-btn\"><button type=\"button\" class=\"btn btn-default\" ng-click=\"openDatePicker($event, col.dataIndex)\"><i class=\"glyphicon glyphicon-calendar\"></i></button></span></div></div><div ng-if=\"col.editable == false\" class=\"tb-cell\" data-field=\"{{col.dataIndex}}\" data-type=\"{{col.type}}\"><input class=\"cell-edit\" type=\"text\" disabled=\"\"></div></div><div class=\"ctrl-panel-container\"><div class=\"ctrl-panel-wrapper\"><span class=\"save\" ng-click=\"save()\">Save</span> <span class=\"cancel\" ng-click=\"cancel()\">Cancel</span></div></div></div>");
+    }]);
