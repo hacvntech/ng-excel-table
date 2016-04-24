@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 14:33:56
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-21 12:04:45
+* @Last Modified time: 2016-04-24 12:13:18
 */
 'use strict';
 var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
@@ -114,8 +114,15 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 			title: 'Delete',
 			type: 'html',
 			width: 200,
-			html: '<span ng-click="col.func($event, cell)"><i class="fa fa-trash" style="color:red;"></i></span><span ng-click="editRow($event)"><i class="fa fa-pencil-square-o" style="color:blue;"></i></span>',
-			func: $scope.cellFn_test
+			html: '<div>'
+                +'<button class="btn btn-outline btn-default hac-row-btn" ng-click="col.func1(salary)">'
+                +    '<i class="fa fa-edit"></i>'
+                +'</button>'
+                +'<button class="btn btn-outline btn-default hac-row-btn" ng-click="col.func2(salary)">'
+                +    '<i class="fa fa-trash-o"></i>'
+                +'</button>'
+                +'</div>',
+			func1: $scope.cellFn_test
 		}];
 		$scope.tblModel = dataModel;
 	});
