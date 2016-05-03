@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 19:00:54
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-24 12:12:29
+* @Last Modified time: 2016-05-03 10:01:36
 */
 
 'use strict';
@@ -51,32 +51,44 @@ angular.module('excel-table', ['ui.bootstrap'])
             return [];
         };
     })
-    .directive('tbCell', function ($window, excelTableModel) {
+    .directive('tbCell', function ($window, excelTableModel, $timeout) {
         return {
             restrict: 'A',
             link: function (scope, element, attrs) {
                 /* watch height changes of element for re-calculate all same class element */
                 scope.$watch(
-                    function () {
-                        // if(element.attr('class').indexOf('tb-row tb-cell row-') != -1 && element.attr('class').indexOf('tb-row tb-cell row-{{$index+1}}-{{tableId}}') == -1){
-                            return element.height();
-                        // }
-                    },
+                    function () { return element.height(); },
                     function (newValue, oldValue) {
-                        if(element.attr('class').indexOf('tb-row tb-cell row-') != -1 && element.attr('class').indexOf('tb-row tb-cell row-{{$index+1}}-{{tableId}}') == -1){
-                            var elms = document.getElementsByClassName(element.attr('class'));
-                            var maxHeight = 0;
-                            for(var i = 0; i < elms.length; i++){
-                                if(maxHeight < elms[i].offsetHeight){
-                                    maxHeight = elms[i].offsetHeight;
+                        $timeout(function () {
+                            if(element.attr('class').indexOf('tb-row tb-cell row-') != -1 && element.attr('class').indexOf('tb-row tb-cell row-{{$index+1}}-{{tableId}}') == -1){
+                                var elms = document.getElementsByClassName(element.attr('class'));
+                                var maxHeight = 0;
+                                for(var i = 0; i < elms.length; i++){
+                                    if(maxHeight < elms[i].offsetHeight){
+                                        maxHeight = elms[i].offsetHeight;
+                                    }
+                                }
+                                for(var i = 0; i < elms.length; i++){
+                                    if(elms[i] != element[0]){
+                                        elms[i].style.height = maxHeight+'px';
+                                    }
                                 }
                             }
-                            for(var i = 0; i < elms.length; i++){
-                                if(elms[i] != element[0]){
-                                    elms[i].style.height = maxHeight+'px';
+                            if(element.attr('class').indexOf('table-header-container') != -1){
+                                var elms = document.getElementsByClassName(element.attr('class'));
+                                var maxHeight = 0;
+                                for(var i = 0; i < elms.length; i++){
+                                    if(maxHeight < elms[i].offsetHeight){
+                                        maxHeight = elms[i].offsetHeight;
+                                    }
+                                }
+                                for(var i = 0; i < elms.length; i++){
+                                    if(elms[i] != element[0]){
+                                        elms[i].style.height = maxHeight+'px';
+                                    }
                                 }
                             }
-                        }
+                        });
                     }
                 );
                 element.on('mouseover', function () {
@@ -101,7 +113,7 @@ angular.module('excel-table', ['ui.bootstrap'])
                     scope.$emit('editRow', e);
                 }
                 element.on('click', function() {
-                    if(attrs.class.indexOf('sortable') != -1){
+                    if(element[0].className.indexOf('sortable') != -1){
                         if(scope.recordEditing != undefined){
                             // alert("Cannot sort column while editing");
                             return false;
@@ -109,7 +121,8 @@ angular.module('excel-table', ['ui.bootstrap'])
                         var isAscending = true;
                         var elms = document.getElementsByClassName('sortable');
                         var icon = element[0].querySelector('.fa');
-                        var field = element[0].className.substring(element[0].className.indexOf("col-")+4, element[0].className.indexOf(" ng-class"));
+                        // var field = element[0].className.substring(element[0].className.indexOf("col-")+4, element[0].className.indexOf(" ng-class"));
+                        var field = attrs.column;
                         if(icon == undefined)
                             return false;
 
@@ -202,24 +215,65 @@ angular.module('excel-table', ['ui.bootstrap'])
                     this.querySelector('.ctrl-panel-wrapper').style.left = (this.offsetWidth/2 - 100) + this.scrollLeft + 'px';
                     // scope.$apply();
                 });
-                
-                /* calculate column's width if forceFit = true */
-                if(scope.tableOption.forceFit){
-                    var totalWidth = 0;
-                    for(var m = 0; m < scope.model.length; m++){
-                        totalWidth += scope.model[m].width;
+                scope.recursiveGroupHeader = function(model){
+                    var o = model.items,
+                        total = 0;
+                    for(var m = 0; m < o.length; m++){
+                        if(o[m].items != undefined){
+                            total += scope.recursiveGroupHeader(o[m]);
+                        }
+                        else{
+                            total += o[m].width;
+                        }
                     }
-                    for(var m = 0; m < scope.model.length; m++){
+                    model.width = total;
+                    return total;
+                }
+                scope.recursiveModelGroupHeader = function(model, totalWidth, level){
+                    var o = model.items;
+                    for(var m = 0; m < o.length; m++){
+                        if(o[m].items != undefined){
+                            scope.recursiveModelGroupHeader(o[m], totalWidth, level + 1);
+                        }
+                        else{
+                            if(scope.tableOption.forceFit){
+                                o[m].width = ((o[m].width/model.width) * 100) + '%';
+                            }
+                            else{
+                                o[m].width = o[m].width - (m == o.length-1 ? level+1 : 0) + 'px';   
+                            }
+                        }
+                    }
+                    if(scope.tableOption.forceFit){
+                        model.width = ((model.width/totalWidth) * 100) + '%';
+                    } else {
+                        model.width = model.width - 1 + 'px';
+                    }
+                }
+                /* calculate column's width if forceFit = true */
+                var totalWidth = 0;
+                for(var m = 0; m < scope.model.length; m++){
+                    if(scope.model[m].items != undefined){
+                        totalWidth += scope.recursiveGroupHeader(scope.model[m]);
+                    }
+                    else{
+                        if(!scope.tableOption.forceFit){
+                            scope.model[m].width += 'px';
+                        }
+                        totalWidth += parseFloat(scope.model[m].width);
+                    }
+                }
+                for(var m = 0; m < scope.model.length; m++){
+                    if(scope.model[m].items != undefined){
+                        scope.recursiveModelGroupHeader(scope.model[m], totalWidth, 0);
+                    }
+                    else if(scope.tableOption.forceFit){
                         scope.model[m].width = ((scope.model[m].width/totalWidth) * 100) + '%';
                     }
                 }
-                else{
-                    var totalWidth = 0;
-                    for(var m = 0; m < scope.model.length; m++){
-                        totalWidth += scope.model[m].width;
-                        scope.model[m].width = scope.model[m].width + 'px';
-                    }
-                    scope.totalWidth = (totalWidth + 2) + 'px';
+                if(!scope.tableOption.forceFit){
+                    scope.totalWidth = (totalWidth + 1) + 'px';
+                    element.width(scope.totalWidth);
                 }
 
                 var orderBy = $filter('orderBy');
@@ -345,5 +399,7 @@ angular.module('excel-table', ['ui.bootstrap'])
         };
     })
     .run(['$templateCache', function ($templateCache) {
-        // $templateCache.put("template/table.html","<div class=\"excel-table\" style=\"width:{{totalWidth}}\"><div class=\"tb-col\" ng-repeat=\"col in model\" style=\"width:{{col.width}}\"><div tb-cell=\"\" class=\"tb-cell header col-{{col.dataIndex}} ng-class:(col.sortable ? \'sortable\' : \'\');\">{{col.title}} <span class=\"pull-right\" ng-if=\"col.sortable\"><i class=\"fa fa-sort-amount-asc\"></i></span></div><div ng-if=\"tableOption.allowFilter\" tb-cell=\"\" class=\"tb-cell cell-filter col-{{col.dataIndex}}\"><input ng-disabled=\"col.allowFilter == false || col.type == \'html\'\" class=\"form-control\" type=\"text\" ng-model=\"cellFilter[col.dataIndex]\"></div><div tb-cell=\"\" data-index=\"{{$index}}\" data-record=\"{{cell[primaryKey]}}\" class=\"tb-row tb-cell row-{{$index+1}}\" ng-repeat=\"cell in {true: (data | filter:cellFilter | startFrom:(paging.currentPage-1)*paging.itemsPerPage | limitTo:paging.itemsPerPage), false: (data | filter:cellFilter)}[tableOption.rud.read.type == \'local\'] track by $index\" ng-switch=\"col.type\"><span ng-switch-when=\"date\" ng-bind=\"cell[col.dataIndex] | date:col.dateFormat\"></span> <span ng-switch-when=\"html\" compile-html=\"col.html\"></span> <span ng-switch-default=\"\" ng-bind=\"cell[col.dataIndex]\"></span></div></div></div><div class=\"table-control form-group\" ng-if=\"tableOption.allowPaging\"><pagination class=\"pagination-sm right\" ng-model=\"paging.currentPage\" total-items=\"paging.totalItems\" max-size=\"paging.pagingSize\" items-per-page=\"paging.itemsPerPage\" boundary-links=\"paging.boundaryLinks\" boundary-link-numbers=\"paging.boundaryLinkNumbers\" rotate=\"paging.rotate\" direction-links=\"paging.directionLinks\" first-text=\"{{paging.firstText}}\" previous-text=\"{{paging.previousText}}\" next-text=\"{{paging.nextText}}\" last-text=\"{{paging.lastText}}\" force-ellipses=\"paging.forceEllipses\" ng-change=\"pageChanged()\" num-pages=\"numPages\"></pagination><div class=\"pager-limitTo\"><label>Per page:</label> <input type=\"number\" class=\"form-control\" ng-model=\"paging.itemsPerPage\" min=\"1\" max=\"100\" step=\"1\" ng-change=\"updateTableData()\"> <label>{{paging.itemsPerPage > 1 ? \'records\' : \'record\'}}</label></div></div>");
+        $templateCache.put("template/table.html","<div class=\"excel-table\" style=\"width:{{totalWidth}}\"><div class=\"tb-col\" ng-repeat=\"col in model\" style=\"width:{{col.width}}\"><div tb-cell=\"\" class=\"table-header-container\"><div tb-cell=\"\" class=\"{{tableId}} tb-cell header\" data-column=\"{{col.dataIndex}}\" ng-class=\"{\'sortable\' : col.sortable, \'group-header\':col.items.length > 0, \'col-{{col.dataIndex}}\':col.items == undefined}\">{{col.title}} <span class=\"pull-right\" ng-if=\"col.sortable\"><i class=\"fa fa-sort-amount-asc\"></i></span></div><div class=\"group-header-item\"><div class=\"tb-col\" ng-repeat=\"col in col.items\" style=\"width:{{col.width}}\" ng-class=\"{\'first-group-header\' : $first, \'last-group-header\' : $last}\" ng-include=\"\'template/group_header.html\'\"></div></div></div><div ng-if=\"col.items == undefined\"><div ng-if=\"tableOption.allowFilter\" tb-cell=\"\" class=\"tb-cell cell-filter col-{{col.dataIndex}}\"><input ng-disabled=\"col.allowFilter == false || col.type == \'html\'\" class=\"form-control\" type=\"text\" ng-model=\"cellFilter[col.dataIndex]\"></div><div tb-cell=\"\" data-index=\"{{$index}}\" data-record=\"{{cell[primaryKey]}}\" class=\"tb-row tb-cell row-{{$index+1}}-{{tableId}}\" ng-repeat=\"cell in {true: (data | filter:cellFilter | startFrom:(paging.currentPage-1)*paging.itemsPerPage | limitTo:paging.itemsPerPage), false: (data | filter:cellFilter)}[tableOption.rud.read.type == \'local\'] track by $index\" ng-switch=\"col.type\"><span ng-switch-when=\"date\" ng-bind=\"cell[col.dataIndex] | date:col.dateFormat\"></span> <span ng-switch-when=\"html\" compile-html=\"col.html\"></span> <span ng-switch-default=\"\" ng-bind=\"cell[col.dataIndex]\"></span></div></div><div ng-if=\"col.items != undefined\"><div class=\"tb-col\" ng-repeat=\"col in col.items\" style=\"width:{{col.width}}\" ng-include=\"\'template/group_columns.html\'\"></div></div></div></div><div class=\"table-control form-group\" ng-if=\"tableOption.allowPaging\"><pagination class=\"pagination-sm right\" ng-model=\"paging.currentPage\" total-items=\"paging.totalItems\" max-size=\"paging.pagingSize\" items-per-page=\"paging.itemsPerPage\" boundary-links=\"paging.boundaryLinks\" boundary-link-numbers=\"paging.boundaryLinkNumbers\" rotate=\"paging.rotate\" direction-links=\"paging.directionLinks\" first-text=\"{{paging.firstText}}\" previous-text=\"{{paging.previousText}}\" next-text=\"{{paging.nextText}}\" last-text=\"{{paging.lastText}}\" force-ellipses=\"paging.forceEllipses\" ng-change=\"pageChanged()\" num-pages=\"numPages\"></pagination><div class=\"pager-limitTo\"><label>Per page:</label> <input type=\"number\" class=\"form-control\" ng-model=\"paging.itemsPerPage\" min=\"1\" max=\"100\" step=\"1\" ng-change=\"updateTableData()\"> <label>{{paging.itemsPerPage > 1 ? \'records\' : \'record\'}}</label></div></div>");
+        $templateCache.put("template/group_columns.html","<div style=\"width: 100%;\"><div ng-if=\"col.items == undefined\"><div ng-if=\"tableOption.allowFilter\" tb-cell=\"\" class=\"tb-cell cell-filter col-{{col.dataIndex}}\"><input ng-disabled=\"col.allowFilter == false || col.type == \'html\'\" class=\"form-control\" type=\"text\" ng-model=\"cellFilter[col.dataIndex]\"></div><div tb-cell=\"\" data-index=\"{{$index}}\" data-record=\"{{cell[primaryKey]}}\" class=\"tb-row tb-cell row-{{$index+1}}-{{tableId}}\" ng-repeat=\"cell in {true: (data | filter:cellFilter | startFrom:(paging.currentPage-1)*paging.itemsPerPage | limitTo:paging.itemsPerPage), false: (data | filter:cellFilter)}[tableOption.rud.read.type == \'local\'] track by $index\" ng-switch=\"col.type\"><span ng-switch-when=\"date\" ng-bind=\"cell[col.dataIndex] | date:col.dateFormat\"></span> <span ng-switch-when=\"html\" compile-html=\"col.html\"></span> <span ng-switch-default=\"\" ng-bind=\"cell[col.dataIndex]\"></span></div></div><div ng-if=\"col.items != undefined\"><div class=\"tb-col\" ng-repeat=\"col in col.items\" style=\"width:{{col.width}}\" ng-include=\"\'template/group_columns.html\'\"></div></div></div>");
+        $templateCache.put("template/group_header.html","<div style=\"width: 100%;\"><div tb-cell=\"\" class=\"{{tableId}} tb-cell header\" data-column=\"{{col.dataIndex}}\" ng-class=\"{\'sortable\' : col.sortable, \'group-header\':col.items.length > 0, \'col-{{col.dataIndex}}\':col.items == undefined}\">{{col.title}} <span class=\"pull-right\" ng-if=\"col.sortable\"><i class=\"fa fa-sort-amount-asc\"></i></span></div><div class=\"group-header-item\"><div class=\"tb-col\" ng-repeat=\"col in col.items\" style=\"width:{{col.width}}\" ng-class=\"{\'first-group-header\' : $first, \'last-group-header\' : $last}\" ng-include=\"\'template/group_header.html\'\"></div></div></div>");
     }]);

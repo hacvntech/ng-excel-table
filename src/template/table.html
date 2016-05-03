@@ -1,18 +1,31 @@
 <div class="excel-table" style="width:{{totalWidth}}">
+<!-- <div class="excel-table"> -->
 	<div class="tb-col" ng-repeat="col in model" style="width:{{col.width}}">
-		<div tb-cell class="{{tableId}} tb-cell header col-{{col.dataIndex}} ng-class:(col.sortable ? 'sortable' : '');">
-			{{col.title}}
-			<span class="pull-right" ng-if="col.sortable">
-				<i class="fa fa-sort-amount-asc"></i>
-			</span>
+		<div tb-cell class="table-header-container">
+			<div tb-cell class="{{tableId}} tb-cell header" data-column="{{col.dataIndex}}" ng-class="{'sortable' : col.sortable, 'group-header':col.items.length > 0, 'col-{{col.dataIndex}}':col.items == undefined}">
+				{{col.title}}
+				<span class="pull-right" ng-if="col.sortable">
+					<i class="fa fa-sort-amount-asc"></i>
+				</span>
+			</div>
+			<!-- generate group header -->
+			<div class="group-header-item">
+				<div class="tb-col" ng-repeat="col in col.items" style="width:{{col.width}}" ng-class="{'first-group-header' : $first, 'last-group-header' : $last}" ng-include="'template/group_header.html'"></div>
+			</div>
 		</div>
-		<div ng-if="tableOption.allowFilter" tb-cell class="tb-cell cell-filter col-{{col.dataIndex}}">
-			<input ng-disabled="col.allowFilter == false || col.type == 'html'" class="form-control" type="text" ng-model="cellFilter[col.dataIndex]">
+		<div ng-if="col.items == undefined">
+			<div ng-if="tableOption.allowFilter" tb-cell class="tb-cell cell-filter col-{{col.dataIndex}}">
+				<input ng-disabled="col.allowFilter == false || col.type == 'html'" class="form-control" type="text" ng-model="cellFilter[col.dataIndex]">
+			</div>
+			<div tb-cell data-index="{{$index}}" data-record="{{cell[primaryKey]}}" class="tb-row tb-cell row-{{$index+1}}-{{tableId}}" ng-repeat="cell in {true: (data | filter:cellFilter | startFrom:(paging.currentPage-1)*paging.itemsPerPage | limitTo:paging.itemsPerPage), false: (data | filter:cellFilter)}[tableOption.rud.read.type == 'local'] track by $index" ng-switch="col.type">
+				<span ng-switch-when="date" ng-bind="cell[col.dataIndex] | date:col.dateFormat"></span>
+				<span ng-switch-when="html" compile-html="col.html"></span>
+				<span ng-switch-default ng-bind="cell[col.dataIndex]"></span>
+			</div>
 		</div>
-		<div tb-cell data-index="{{$index}}" data-record="{{cell[primaryKey]}}" class="tb-row tb-cell row-{{$index+1}}-{{tableId}}" ng-repeat="cell in {true: (data | filter:cellFilter | startFrom:(paging.currentPage-1)*paging.itemsPerPage | limitTo:paging.itemsPerPage), false: (data | filter:cellFilter)}[tableOption.rud.read.type == 'local'] track by $index" ng-switch="col.type">
-			<span ng-switch-when="date" ng-bind="cell[col.dataIndex] | date:col.dateFormat"></span>
-			<span ng-switch-when="html" compile-html="col.html"></span>
-			<span ng-switch-default ng-bind="cell[col.dataIndex]"></span>
+		<div ng-if="col.items != undefined">
+			<!-- generate group columns -->
+			<div class="tb-col" ng-repeat="col in col.items" style="width:{{col.width}}" ng-include="'template/group_columns.html'"></div>
 		</div>
 	</div>
 </div>

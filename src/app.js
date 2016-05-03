@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 14:33:56
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-04-24 12:13:18
+* @Last Modified time: 2016-05-03 09:53:23
 */
 'use strict';
 var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
@@ -17,7 +17,7 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
             {id: "5", name: "Chrome",             maker: "(Google)"}
         ];
         $scope.tblOption = {
-        	forceFit: true,
+        	forceFit: false,
         	allowFilter: true,
         	allowPaging: true,
         	dblClickToEdit: true,
@@ -77,13 +77,8 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 			type: 'string',
 			allowFilter: false,
 			width: 120,
-			sortable: false,
+			sortable: true,
 			editable: false
-		},{
-			dataIndex: 'cus_name',
-			title: 'Customer',
-			type: 'string',
-			width: 250
 		},{
 			dataIndex: 'date_empty_cont',
 			title: 'Date Empty Cont',
@@ -93,12 +88,34 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 			disableWeekend: true,
 			minDate: new Date(),
 			startingDay: 1
-		},{
-			dataIndex: 'roah_name',
-			title: 'Tuyen Duong',
-			type:'string',
-			width: 200
-		},{
+        },{
+            title: 'Group 1',
+            items:[{
+                title: 'Group 3',
+                items:[{
+                    dataIndex: 'cus_name',
+                    title: 'Customer',
+                    type: 'string',
+                    sortable: true,
+                    width: 250
+        		},{
+        			dataIndex: 'roah_name',
+        			title: 'Tuyen Duong',
+        			type:'string',
+        			width: 200
+                }]
+            },{
+                title: 'Group 2',
+                items:[{
+                    dataIndex: 'booking_no',
+                    title: 'Delete',
+                    type: 'html',
+                    width: 200,
+                    html: '<a href="#" ng-bind="cell.booking_no"></a>',
+                    func1: $scope.cellFn_test
+                }]
+            }]
+		// },{
 		// 	dataIndex: 'browser',
 		// 	title: 'Browser',
 		// 	type: 'list',
@@ -110,19 +127,20 @@ var app = angular.module('excelTable', ['excel-table','xtable.rowEdit']);
 		// 	multiSelect: true,
 		// 	store: $scope.listBrowser
 		// },{
-			dataIndex: 'booking_no',
-			title: 'Delete',
-			type: 'html',
-			width: 200,
-			html: '<div>'
-                +'<button class="btn btn-outline btn-default hac-row-btn" ng-click="col.func1(salary)">'
-                +    '<i class="fa fa-edit"></i>'
-                +'</button>'
-                +'<button class="btn btn-outline btn-default hac-row-btn" ng-click="col.func2(salary)">'
-                +    '<i class="fa fa-trash-o"></i>'
-                +'</button>'
-                +'</div>',
-			func1: $scope.cellFn_test
+			// dataIndex: 'booking_no',
+			// title: 'Delete',
+			// type: 'html',
+			// width: 200,
+   //          html: '<a href="#" ng-bind="cell.booking_no"></a>',
+			// // html: '<div>'
+   // //              +'<button class="btn btn-outline btn-default hac-row-btn" ng-click="col.func1(salary)">'
+   // //              +    '<i class="fa fa-edit"></i>'
+   // //              +'</button>'
+   // //              +'<button class="btn btn-outline btn-default hac-row-btn" ng-click="col.func2(salary)">'
+   // //              +    '<i class="fa fa-trash-o"></i>'
+   // //              +'</button>'
+   // //              +'</div>',
+			// func1: $scope.cellFn_test
 		}];
 		$scope.tblModel = dataModel;
 	});
