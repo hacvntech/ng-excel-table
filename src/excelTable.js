@@ -4,7 +4,7 @@
 * @LinkedIn: https://www.linkedin.com/in/duc-anh-nguyen-31173552
 * @Date:   2016-04-11 19:00:54
 * @Last Modified by:   Duc Anh Nguyen
-* @Last Modified time: 2016-05-03 10:01:36
+* @Last Modified time: 2016-05-05 12:42:49
 */
 
 'use strict';
@@ -295,38 +295,40 @@ angular.module('excel-table', ['ui.bootstrap'])
                     }
                 };
                 scope.getRecords = function(){
-                    var httpOpts = {
-                        url: scope.tableOption.rud.read.url,
-                        method: scope.tableOption.rud.read.method,
-                        withCredentials: scope.tableOption.rud.credentials == undefined ? false : scope.tableOption.rud.credentials,
-                        header: scope.tableOption.rud.header
-                    };
-                    if(scope.tableOption.rud.read.type == 'remote'){
-                        httpOpts['data'] = scope.tableOption.rud.read.data;
-                        /* merge custom request data with default request data before send */
-                        if(httpOpts['data'][scope.tableOption.rud.customScopeParams] != undefined){
-                            Object.keys(scope.dataParams).map(function(key, index){
-                                if(httpOpts['data'][scope.tableOption.rud.customScopeParams][key] != undefined)
-                                    httpOpts['data'][scope.tableOption.rud.customScopeParams][key] = scope.dataParams[key];
-                            });
+                    if(scope.tableOption.rud.read != undefined){
+                        var httpOpts = {
+                            url: scope.tableOption.rud.read.url,
+                            method: scope.tableOption.rud.read.method,
+                            withCredentials: scope.tableOption.rud.credentials == undefined ? false : scope.tableOption.rud.credentials,
+                            header: scope.tableOption.rud.header
+                        };
+                        if(scope.tableOption.rud.read.type == 'remote'){
+                            httpOpts['data'] = scope.tableOption.rud.read.data;
+                            /* merge custom request data with default request data before send */
+                            if(httpOpts['data'][scope.tableOption.rud.customScopeParams] != undefined){
+                                Object.keys(scope.dataParams).map(function(key, index){
+                                    if(httpOpts['data'][scope.tableOption.rud.customScopeParams][key] != undefined)
+                                        httpOpts['data'][scope.tableOption.rud.customScopeParams][key] = scope.dataParams[key];
+                                });
+                            }
+                            else{
+                                httpOpts['data'][scope.tableOption.rud.customScopeParams] = scope.dataParams;
+                            }
                         }
-                        else{
-                            httpOpts['data'][scope.tableOption.rud.customScopeParams] = scope.dataParams;
-                        }
+                        $http(httpOpts).then(function successCallback(response) {
+                            scope.data = response.data.data;
+                            if(scope.tableOption.allowPaging){
+                                scope.paging.totalItems = response.data.totalItems;
+                            }
+                            if(typeof(scope.tableOption.rud.read.fn.success) == "function"){
+                                scope.tableOption.rud.read.fn.success(response);
+                            }
+                        }, function errorCallback(response) {
+                            if(typeof(scope.tableOption.rud.read.fn.success) == "function"){
+                                scope.tableOption.rud.read.fn.failure(response);
+                            }
+                        });
                     }
-                    $http(httpOpts).then(function successCallback(response) {
-                        scope.data = response.data.data;
-                        if(scope.tableOption.allowPaging){
-                            scope.paging.totalItems = response.data.totalItems;
-                        }
-                        if(typeof(scope.tableOption.rud.read.fn.success) == "function"){
-                            scope.tableOption.rud.read.fn.success(response);
-                        }
-                    }, function errorCallback(response) {
-                        if(typeof(scope.tableOption.rud.read.fn.success) == "function"){
-                            scope.tableOption.rud.read.fn.failure(response);
-                        }
-                    });
                 };
                 $rootScope.$on('rowEditing', function(event, data) {
                     scope.recordEditing = data
@@ -381,7 +383,7 @@ angular.module('excel-table', ['ui.bootstrap'])
                     scope.getRecords();
                 }
                 scope.$watch('cellFilter', function (newVal, oldVal) {
-                    if(scope.tableOption.rud.read.type == "remote"){
+                    if(scope.tableOption.rud.read != undefined && scope.tableOption.rud.read.type == "remote"){
                         scope.paging.currentPage = 1;
                         scope.dataParams['search'] = newVal;
                         scope.getRecords();
